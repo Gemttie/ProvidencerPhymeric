@@ -1,0 +1,199 @@
+[gd_scene load_steps=24 format=3 uid="uid://dl7od4hv5vhdq"]
+
+[ext_resource type="Texture2D" uid="uid://dtsto6xgicbtp" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/body_main_texture_cs.png" id="1_dkd2c"]
+[ext_resource type="Texture2D" uid="uid://chrppaqkk16lq" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/body_outlining_cs.png" id="2_jm5li"]
+[ext_resource type="PackedScene" uid="uid://dw8m46213wes0" path="res://data/scenes/button_generic_ui_element.tscn" id="3_dq4ba"]
+[ext_resource type="Texture2D" uid="uid://bjsx6smgis73l" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/main_stat_frame_cs.png" id="4_dq4ba"]
+[ext_resource type="Texture2D" uid="uid://cv2vec11ovip1" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/health_icon_cs.png" id="5_3ol01"]
+[ext_resource type="Texture2D" uid="uid://b32qh2ggxxjjf" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/speed_icon_cs.png" id="6_6poak"]
+[ext_resource type="Texture2D" uid="uid://dwjkd62g1huy0" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/tox_def_icon_cs.png" id="7_lg5i4"]
+[ext_resource type="Texture2D" uid="uid://d1o4reyqxaabh" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/bio_def_icon_cs.png" id="8_53duf"]
+[ext_resource type="Texture2D" uid="uid://csw34jhbqy5sa" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/phys_def_icon.png" id="9_jymlx"]
+[ext_resource type="Texture2D" uid="uid://b6vf85d8cb186" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/cold_def_icon_cs.png" id="10_1gv76"]
+[ext_resource type="Texture2D" uid="uid://cstfaanbkhtct" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/heat_def_icon_cs.png" id="11_nd0ct"]
+[ext_resource type="Texture2D" uid="uid://bktl0rvad06as" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/elec_def_icon_cs.png" id="12_ycpgh"]
+[ext_resource type="Texture2D" uid="uid://1tu3mo4pa57" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/crit_values_cs.png" id="13_3ol01"]
+[ext_resource type="Texture2D" uid="uid://b8bonoeruksfb" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/sec_stats_frame_cs.png" id="14_ycpgh"]
+[ext_resource type="Texture2D" uid="uid://uivgeuq5vmkn" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/strength_text_cs.png" id="15_7codg"]
+[ext_resource type="Texture2D" uid="uid://bmcdrl65uotep" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/strength_icon_cs.png" id="16_bfdye"]
+[ext_resource type="Texture2D" uid="uid://rq53xj8vk61b" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/agility_text_cs.png" id="17_ktnv4"]
+[ext_resource type="Texture2D" uid="uid://behsrv33jpilg" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/agility_icon_cs.png" id="18_wt75e"]
+[ext_resource type="Texture2D" uid="uid://cxwaouxs3734k" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/social_text_cs.png" id="19_jilta"]
+[ext_resource type="Texture2D" uid="uid://nb4ptmk82afw" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/social_icon_cs.png" id="20_r06xp"]
+[ext_resource type="Texture2D" uid="uid://qtlojqmk8jt6" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/name_text_cs.png" id="21_ktnv4"]
+[ext_resource type="Texture2D" uid="uid://qqa5xl48fwng" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/especies_text_cs.png" id="22_wt75e"]
+[ext_resource type="Texture2D" uid="uid://0a6y6irl7ylr" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/sub_especies_text_cs.png" id="23_jilta"]
+
+[node name="char_sheet" type="Node2D"]
+metadata/_edit_horizontal_guides_ = [-115.0, -68.0]
+metadata/_edit_vertical_guides_ = [-100.0]
+
+[node name="body_main_texture" type="Sprite2D" parent="."]
+texture = ExtResource("1_dkd2c")
+metadata/_edit_lock_ = true
+metadata/_edit_group_ = true
+
+[node name="body_outlining" type="Sprite2D" parent="body_main_texture"]
+texture = ExtResource("2_jm5li")
+
+[node name="char_portrait" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-82.5, -91.5)
+button_area_size = Vector2(16, 23)
+
+[node name="health_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-51.5, -99.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="Sprite2D" type="Sprite2D" parent="health_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("5_3ol01")
+
+[node name="speed_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-27.5, -99.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="speed_icon" type="Sprite2D" parent="speed_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("6_6poak")
+
+[node name="tox_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-3.5, -99.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="tox_def_icon" type="Sprite2D" parent="tox_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("7_lg5i4")
+
+[node name="bio_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(20.5, -99.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="bio_def_icon" type="Sprite2D" parent="bio_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("8_53duf")
+
+[node name="phys_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(44.5, -99.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="phys_def_icon" type="Sprite2D" parent="phys_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("9_jymlx")
+
+[node name="cold_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-3.5, -63.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="cold_def_icon" type="Sprite2D" parent="cold_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("10_1gv76")
+
+[node name="heat_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(20.5, -63.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="heat_def_icon" type="Sprite2D" parent="heat_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("11_nd0ct")
+
+[node name="elec_def_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(44.5, -63.5)
+texture = ExtResource("4_dq4ba")
+
+[node name="elec_def_icon" type="Sprite2D" parent="elec_def_stat"]
+position = Vector2(0, -5.5)
+texture = ExtResource("12_ycpgh")
+
+[node name="crit_values_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-40, -66)
+texture = ExtResource("13_3ol01")
+button_area_size = Vector2(14, 14)
+button_area_rot_degrees = 45.0
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="strength_sec_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(78.5, -103.5)
+texture = ExtResource("14_ycpgh")
+button_area_size = Vector2(20, 10)
+
+[node name="Sprite2D" type="Sprite2D" parent="strength_sec_stat"]
+position = Vector2(-8.5, -5)
+texture = ExtResource("15_7codg")
+
+[node name="Sprite2D2" type="Sprite2D" parent="strength_sec_stat"]
+position = Vector2(-8.5, 3)
+texture = ExtResource("16_bfdye")
+
+[node name="agil_sec_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(78.5, -82.5)
+texture = ExtResource("14_ycpgh")
+button_area_size = Vector2(20, 10)
+
+[node name="Sprite2D" type="Sprite2D" parent="agil_sec_stat"]
+position = Vector2(-8.5, -5)
+texture = ExtResource("17_ktnv4")
+
+[node name="Sprite2D2" type="Sprite2D" parent="agil_sec_stat"]
+position = Vector2(-8.5, 3)
+texture = ExtResource("18_wt75e")
+
+[node name="soc_sec_stat" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(78.5, -61.5)
+texture = ExtResource("14_ycpgh")
+button_area_size = Vector2(20, 10)
+
+[node name="Sprite2D" type="Sprite2D" parent="soc_sec_stat"]
+position = Vector2(-8.5, -5)
+texture = ExtResource("19_jilta")
+
+[node name="Sprite2D2" type="Sprite2D" parent="soc_sec_stat"]
+position = Vector2(-8.5, 3)
+texture = ExtResource("20_r06xp")
+
+[node name="name_text" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-96.5, -62.5)
+texture = ExtResource("21_ktnv4")
+button_area_size = Vector2(4, 4)
+
+[node name="especies_text" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-97, -54.5)
+texture = ExtResource("22_wt75e")
+button_area_size = Vector2(4, 4)
+
+[node name="sub_especies_text" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-96, -46.5)
+texture = ExtResource("23_jilta")
+button_area_size = Vector2(4, 4)
+
+[node name="empty_hability_slot" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-75.5, -10)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot2" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-25.5, -10)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot3" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(25.5, -10)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot4" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(75.5, -10)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot5" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-75.5, 71)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot6" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(-25.5, 71)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot7" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(25.5, 71)
+button_area_size = Vector2(24, 31)
+
+[node name="empty_hability_slot8" parent="." instance=ExtResource("3_dq4ba")]
+position = Vector2(75.5, 71)
+button_area_size = Vector2(24, 31)

@@ -1,0 +1,208 @@
+[gd_scene load_steps=12 format=3 uid="uid://c8pxroa5g8mgj"]
+
+[ext_resource type="Script" uid="uid://b2k2m05tg3c3n" path="res://data/scripts/rm_biome_info_popup.gd" id="1_8twek"]
+[ext_resource type="Texture2D" uid="uid://qqe3nswcc5fs" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_mbody.png" id="1_cen2n"]
+[ext_resource type="FontFile" uid="uid://bs5mf4gcj5yk2" path="res://assets/fonts/Tiny5-Regular.ttf" id="1_dftrv"]
+[ext_resource type="Texture2D" uid="uid://dvb05kr6corum" path="res://assets/game_sprites/particles/circle_particle_simple.png" id="3_4rm5m"]
+[ext_resource type="Texture2D" uid="uid://b4tse1sgclnlg" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_tsign.png" id="3_8twek"]
+[ext_resource type="Texture2D" uid="uid://8a4ojl62mod5" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_lp_arrow.png" id="3_apybr"]
+[ext_resource type="Material" uid="uid://dh75a2m3708e4" path="res://data/particle process materials/generic_white_particle_explosion_03_ppm.tres" id="7_8twek"]
+
+[sub_resource type="Animation" id="Animation_deu6x"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("main_info_body/biome_info_text:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_4810t"]
+resource_name = "popup"
+length = 0.4
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("main_info_body:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(6.49801, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1.8, 1.8, 1.8, 1), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("main_info_body:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1.07177, 1),
+"update": 0,
+"values": [Vector2(0, 15), Vector2(3.5, 0), Vector2(3.5, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("main_particle_gen:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1.07177, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -8), Vector2(0, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("main_info_body:scale")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/4/type = "method"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath(".")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"gen_particles"
+}]
+}
+tracks/5/type = "value"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath("main_info_body/biome_info_text:modulate")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0, 0.2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Color(0.355314, 0.355314, 0.355314, 1), Color(1, 1, 1, 1)]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("main_info_body/region_name_slate:scale")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.3, 0.4),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, 0), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vnlug"]
+_data = {
+&"RESET": SubResource("Animation_deu6x"),
+&"popup": SubResource("Animation_4810t")
+}
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_apybr"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_cen2n")
+}],
+"loop": false,
+"name": &"default",
+"speed": 60.0
+}]
+
+[node name="rm_biome_info_popup" type="Node2D"]
+scale = Vector2(4, 4)
+script = ExtResource("1_8twek")
+
+[node name="popup_anims" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_vnlug")
+}
+
+[node name="main_info_body" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, 15)
+scale = Vector2(1e-05, 1e-05)
+sprite_frames = SubResource("SpriteFrames_apybr")
+
+[node name="biome_info_text" type="Label" parent="main_info_body"]
+offset_left = -39.5
+offset_top = -25.0
+offset_right = 133.5
+offset_bottom = 8.0
+theme_override_colors/font_outline_color = Color(0.12549, 0.12549, 0.12549, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("1_dftrv")
+theme_override_font_sizes/font_size = 8
+text = "HAZZARD :
+REGION SIZE : 
+CLIMATE : "
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="local_population_text" type="Label" parent="main_info_body"]
+visible = false
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -140.0
+offset_top = -33.0
+offset_right = 33.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+theme_override_colors/font_outline_color = Color(0.12549, 0.12549, 0.12549, 1)
+theme_override_constants/line_spacing = 1
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("1_dftrv")
+theme_override_font_sizes/font_size = 8
+text = "LOCAL POPULATION"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="arrow_lp" type="Sprite2D" parent="main_info_body/local_population_text"]
+position = Vector2(86, 24)
+texture = ExtResource("3_apybr")
+
+[node name="region_name_slate" type="Sprite2D" parent="main_info_body"]
+position = Vector2(1.5, -48)
+scale = Vector2(1e-05, 1e-05)
+texture = ExtResource("3_8twek")
+
+[node name="portrait_timer" type="Timer" parent="main_info_body"]
+one_shot = true
+
+[node name="main_particle_gen" type="GPUParticles2D" parent="."]
+emitting = false
+texture = ExtResource("3_4rm5m")
+lifetime = 0.67
+one_shot = true
+explosiveness = 0.86
+randomness = 0.24
+process_material = ExtResource("7_8twek")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[connection signal="timeout" from="main_info_body/portrait_timer" to="." method="_on_portrait_timer_timeout"]

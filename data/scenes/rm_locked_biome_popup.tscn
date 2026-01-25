@@ -1,0 +1,186 @@
+[gd_scene load_steps=11 format=3 uid="uid://xmgsjmiak402"]
+
+[ext_resource type="Script" uid="uid://f0j7xwsa6c4y" path="res://data/scripts/rm_locked_biome_popup.gd" id="1_5qtkt"]
+[ext_resource type="FontFile" uid="uid://bs5mf4gcj5yk2" path="res://assets/fonts/Tiny5-Regular.ttf" id="3_fpb5p"]
+[ext_resource type="Texture2D" uid="uid://dajw3vcvj5hnr" path="res://assets/game_sprites/ui/misc/warning_icon_01.png" id="4_7uts0"]
+[ext_resource type="Material" uid="uid://dh75a2m3708e4" path="res://data/particle process materials/generic_white_particle_explosion_03_ppm.tres" id="6_fpb5p"]
+[ext_resource type="Texture2D" uid="uid://c60oymn4s8u2x" path="res://assets/game_sprites/ui/region_map/locked_biome_popup/region_map_locked_biome_popup_16.png" id="16_k8y3h"]
+[ext_resource type="Texture2D" uid="uid://dvb05kr6corum" path="res://assets/game_sprites/particles/circle_particle_simple.png" id="17_00ojj"]
+
+[sub_resource type="Animation" id="Animation_deu6x"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:rotation")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0.0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D/warning_text:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_4810t"]
+resource_name = "popup"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("AnimatedSprite2D:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(6.49801, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1.8, 1.8, 1.8, 1), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("AnimatedSprite2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1.07177, 1),
+"update": 0,
+"values": [Vector2(0, 15), Vector2(3.5, 0), Vector2(3.5, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("GPUParticles2D:position")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1.07177, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(0, -8), Vector2(0, 0)]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("AnimatedSprite2D:scale")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(0, 0), Vector2(1.2, 1.2), Vector2(1, 1)]
+}
+tracks/4/type = "value"
+tracks/4/imported = false
+tracks/4/enabled = true
+tracks/4/path = NodePath("AnimatedSprite2D:rotation")
+tracks/4/interp = 1
+tracks/4/loop_wrap = true
+tracks/4/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [-0.10472, 0.139626, 0.0]
+}
+tracks/5/type = "method"
+tracks/5/imported = false
+tracks/5/enabled = true
+tracks/5/path = NodePath(".")
+tracks/5/interp = 1
+tracks/5/loop_wrap = true
+tracks/5/keys = {
+"times": PackedFloat32Array(0.2),
+"transitions": PackedFloat32Array(1),
+"values": [{
+"args": [],
+"method": &"gen_particles"
+}]
+}
+tracks/6/type = "value"
+tracks/6/imported = false
+tracks/6/enabled = true
+tracks/6/path = NodePath("AnimatedSprite2D/warning_text:modulate")
+tracks/6/interp = 1
+tracks/6/loop_wrap = true
+tracks/6/keys = {
+"times": PackedFloat32Array(0, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(0.355314, 0.355314, 0.355314, 1), Color(1, 1, 1, 1), Color(1, 0.905882, 0.215686, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_vnlug"]
+_data = {
+&"RESET": SubResource("Animation_deu6x"),
+&"popup": SubResource("Animation_4810t")
+}
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_wmxeh"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("16_k8y3h")
+}],
+"loop": false,
+"name": &"default",
+"speed": 60.0
+}]
+
+[node name="rm_locked_biome_popup" type="Node2D" node_paths=PackedStringArray("grab_particle_gen", "anim_player")]
+script = ExtResource("1_5qtkt")
+grab_particle_gen = NodePath("GPUParticles2D")
+anim_player = NodePath("AnimationPlayer")
+metadata/_edit_vertical_guides_ = [-1.0]
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_vnlug")
+}
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(3.5, 0)
+sprite_frames = SubResource("SpriteFrames_wmxeh")
+
+[node name="warning_text" type="Label" parent="AnimatedSprite2D"]
+offset_left = -86.5
+offset_top = -16.0
+offset_right = 86.5
+offset_bottom = 7.0
+theme_override_colors/font_outline_color = Color(0.12549, 0.12549, 0.12549, 1)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("3_fpb5p")
+theme_override_font_sizes/font_size = 8
+text = "INACCESSIBLE
+REGION"
+horizontal_alignment = 1
+vertical_alignment = 1
+metadata/_edit_use_anchors_ = true
+
+[node name="warning_sign" type="Sprite2D" parent="AnimatedSprite2D"]
+position = Vector2(0, -37.5)
+texture = ExtResource("4_7uts0")
+
+[node name="GPUParticles2D" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 12
+texture = ExtResource("17_00ojj")
+lifetime = 0.67
+one_shot = true
+explosiveness = 0.86
+randomness = 0.24
+process_material = ExtResource("6_fpb5p")

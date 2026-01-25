@@ -1,0 +1,125 @@
+extends Node2D
+@onready var population_portrait_scene = preload("res://data/scenes/population_portrait.tscn")
+@onready var main_info_body: AnimatedSprite2D = $main_info_body
+@onready var portrait_timer: Timer = $main_info_body/portrait_timer
+@onready var biome_info_text: Label = $main_info_body/biome_info_text
+@onready var popup_anims: AnimationPlayer = $popup_anims
+@onready var main_particle_gen: GPUParticles2D = $main_particle_gen
+@onready var region_name_slate: Sprite2D = $main_info_body/region_name_slate
+
+@export var tween_and_part_delay : float = 0.2
+
+var k = 0
+var portrait_list_aux : Array[String] = []
+#var extended_portrait_list_aux : Array[String] = []
+const PORTRAIT_GEN_LOCATIONS : Array[Vector2] = [
+	(Vector2(-28.5,40.0)), #1
+	(Vector2(-7.5,44.0)), #2
+	(Vector2(13.5,43.0)), #3
+	(Vector2(34.5,42.0)), #4
+	(Vector2(55.5,38.0)), #5
+	(Vector2(-50.5,42.0)), #6 (this is the weird one that goes to the left)
+]
+var aux_portrait_gen_loc : Array[Vector2] = []
+
+
+func start_biome_info_gen(char_portait_list : Array[String]) -> void:
+	reset_biome_info_popup() #delete all previous data
+	portrait_list_aux = char_portait_list
+	var signs := [-1, 1]
+	var random_sign: int = signs[randi() % signs.size()]
+	
+	TweenControl.stop_all_tweens(main_info_body)
+	main_info_body.rotation_degrees = 90.0 * random_sign 
+	
+	#always initialize aux_portrait_gen_loc
+	aux_portrait_gen_loc = PORTRAIT_GEN_LOCATIONS.duplicate()
+	
+	#extra anims
+	TweenControl.smooth_transition("rotation_degrees", main_info_body, 0.0, tween_and_part_delay * 4, Tween.TransitionType.TRANS_ELASTIC, Tween.EaseType.EASE_OUT)
+	
+	if portrait_list_aux.size() >= 6: #if the size of the char list is 6 or above, push_to_front the last pos of the pos array
+		var last_loc = PORTRAIT_GEN_LOCATIONS.back()
+		aux_portrait_gen_loc.push_front(last_loc)
+		aux_portrait_gen_loc.remove_at(aux_portrait_gen_loc.size() - 1)
+		
+	gen_all_portraits(aux_portrait_gen_loc)
+
+func reset_biome_info_popup() -> void:
+	k = 0
+	portrait_list_aux = []
+	aux_portrait_gen_loc = []
+	var child_del = main_info_body.get_children()
+	for c in child_del:
+		if c.is_in_group("tiny_c_portrait_ui"):
+			c.queue_free()
+			
+	#biome_info_text.text = ""
+	#popup_anims.play_backwards("popup")
+
+func gen_all_portraits(gen_locations_list : Array[Vector2]) -> void:
+	popup_anims.play("popup")
+	gen_next_portrait(gen_locations_list)
+
+func _on_portrait_timer_timeout() -> void:
+	if k < portrait_list_aux.size():
+		gen_next_portrait(aux_portrait_gen_loc)
+
+func gen_next_portrait(gen_loc_list : Array[Vector2]) -> void:
+	var population_portrait_instance = population_portrait_scene.instantiate()
+	main_info_body.add_child(population_portrait_instance)
+	
+	population_portrait_instance.modulate = Color(1,1,1,0)
+	population_portrait_instance.scale = Vector2(0.0,0.0) 
+	population_portrait_instance.position = gen_loc_list[k] + Vector2(0, 10)
+	population_portrait_instance.gen_particles_with_delay(tween_and_part_delay)
+	population_portrait_instance.set_char_portrait(portrait_list_aux[k])
+	
+	TweenControl.smooth_transition("modulate", population_portrait_instance, Color(1,1,1,1), tween_and_part_delay,Tween.TransitionType.TRANS_CIRC, Tween.EaseType.EASE_IN)
+	TweenControl.smooth_transition("scale", population_portrait_instance, Vector2(1, 1), tween_and_part_delay * 2, Tween.TransitionType.TRANS_BACK, Tween.EaseType.EASE_IN_OUT)
+	TweenControl.smooth_transition("position", population_portrait_instance, gen_loc_list[k])
+	portrait_timer.start(0.06)
+	aux_portrait_gen_loc = gen_loc_list
+	
+	k += 1
+
+
+func gen_particles() -> void:
+	main_particle_gen.restart()
+	
+# Add these to rm_biome_info_popup.gd
+func show_biome_info(biome_name: String, biome_tile_count, cluster_id: int, population: Array[String] = []) -> void:
+	# Clear previous data
+	reset_biome_info_popup()
+	var size_desc = get_size_description(biome_tile_count)
+	# Set biome name (you'll need to add this to your scene)
+	biome_info_text.text = "HAZZARD : %s\nREGION SIZE : %s (%d tiles)\nCLIMATE : " % [biome_name, size_desc, biome_tile_count]
+	biome_info_text.visible = true
+	
+	
+	# Show population portraits if available
+	if population.size() > 0:
+		start_biome_info_gen(population)
+	else:
+		# Just show the popup without portraits
+		popup_anims.play("popup")
+		await get_tree().create_timer(1.0).timeout
+		popup_anims.play_backwards("popup")
+
+
+func hide_popup() -> void:
+	reset_biome_info_popup()
+	popup_anims.play_backwards("popup")
+
+
+func get_size_description(cluster_size: int) -> String:
+	if cluster_size <= 0: return "EMPTY"
+	if cluster_size > 0 and cluster_size <= 40: return "MINUSCULE"
+	if cluster_size > 40 and cluster_size <= 160: return "SMALL"
+	if cluster_size > 160 and cluster_size <= 640: return "MODERATE"
+	if cluster_size > 640 and cluster_size <= 2560: return "LARGE"
+	if cluster_size > 2560 and cluster_size <= 10240: return "VERY LARGE"
+	if cluster_size > 10240 and cluster_size <= 40960: return "HUGE"
+	if cluster_size > 40960 and cluster_size <= 163840: return "ENORMOUS"
+	if cluster_size > 163840 and cluster_size <= 655360: return "COLOSSAL"
+	return "CONTINENT SIZED"

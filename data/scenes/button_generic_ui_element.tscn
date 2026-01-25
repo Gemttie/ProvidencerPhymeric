@@ -1,0 +1,38 @@
+[gd_scene load_steps=7 format=3 uid="uid://dw8m46213wes0"]
+
+[ext_resource type="Texture2D" uid="uid://c2gn1ly54qlmh" path="res://assets/game_sprites/ui/char_sheet/char_sheet_components/char_portrait_cs.png" id="1_y17f1"]
+[ext_resource type="Script" uid="uid://doj4mkvsligbt" path="res://data/scripts/button_generic_ui_element.gd" id="2_633ro"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_633ro"]
+
+[sub_resource type="Animation" id="Animation_x4qs4"]
+resource_name = "click_glow"
+
+[sub_resource type="Animation" id="Animation_k5q30"]
+resource_name = "hover_glow"
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_behri"]
+_data = {
+&"click_glow": SubResource("Animation_x4qs4"),
+&"hover_glow": SubResource("Animation_k5q30")
+}
+
+[node name="button_generic_ui_element" type="Sprite2D"]
+texture = ExtResource("1_y17f1")
+script = ExtResource("2_633ro")
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_633ro")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_behri")
+}
+
+[node name="deco1" type="Sprite2D" parent="."]
+
+[connection signal="input_event" from="Area2D" to="." method="_on_area_2d_input_event"]
+[connection signal="mouse_entered" from="Area2D" to="." method="_on_area_2d_mouse_entered"]
+[connection signal="mouse_exited" from="Area2D" to="." method="_on_area_2d_mouse_exited"]

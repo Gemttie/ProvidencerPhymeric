@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://bupwtxpvficwc"]
+
+[ext_resource type="Script" uid="uid://x6h8tgku2f78" path="res://data/scripts/population_portrait.gd" id="1_e4i8i"]
+[ext_resource type="Texture2D" uid="uid://jfkvu3ubhvo3" path="res://assets/game_sprites/particles/smaller_circle_particle_simple.png" id="2_h0v7j"]
+[ext_resource type="Material" uid="uid://b7o6rtm3drfcg" path="res://data/particle process materials/generic_white_particle_explosion_02_ppm.tres" id="3_rorbu"]
+
+[node name="population_portrait" type="Sprite2D" groups=["tiny_c_portrait_ui"]]
+script = ExtResource("1_e4i8i")
+
+[node name="char_image" type="Sprite2D" parent="."]
+
+[node name="particle_gen" type="GPUParticles2D" parent="."]
+scale = Vector2(0.5, 0.5)
+emitting = false
+amount = 2
+texture = ExtResource("2_h0v7j")
+lifetime = 0.6
+one_shot = true
+explosiveness = 0.85
+process_material = ExtResource("3_rorbu")
+
+[node name="part_gen_delay" type="Timer" parent="."]
+one_shot = true
+
+[connection signal="timeout" from="part_gen_delay" to="." method="_on_part_gen_delay_timeout"]
