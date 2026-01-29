@@ -2,6 +2,7 @@ extends Node
 
 var clusters_data
 const MAP_DATA_PATH = "user://map_data.json"
+var using_saved_map_data : bool = false
 
 
 func copy_map_data_from_disk() -> void:

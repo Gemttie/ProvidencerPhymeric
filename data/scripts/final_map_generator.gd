@@ -12,7 +12,9 @@ var border_3_ta: Vector2i = Vector2i(11, 1)
 func _ready() -> void:
 	#wait a frame to ensure both maps are generated
 	await get_tree().process_frame
-	copy_biomes_using_slice_mask()
+	#dont call the second rescan gen if we're using saved map data for the tilemap drawing
+	if MapDataIntermediary.using_saved_map_data == false:
+		copy_biomes_using_slice_mask()
 
 func copy_biomes_using_slice_mask() -> void:
 	if not slice_map_layer or not main_biome_map_layer or not final_map_layer:

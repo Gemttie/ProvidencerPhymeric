@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://c8pxroa5g8mgj"]
+[gd_scene load_steps=15 format=3 uid="uid://c8pxroa5g8mgj"]
 
 [ext_resource type="Script" uid="uid://b2k2m05tg3c3n" path="res://data/scripts/rm_biome_info_popup.gd" id="1_8twek"]
 [ext_resource type="Texture2D" uid="uid://qqe3nswcc5fs" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_mbody.png" id="1_cen2n"]
@@ -130,6 +130,68 @@ animations = [{
 "speed": 60.0
 }]
 
+[sub_resource type="Animation" id="Animation_apybr"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(86, 24)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("..:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_8twek"]
+resource_name = "up_and_down"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector2(86, 24), Vector2(86, 25.5), Vector2(86, 24)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("..:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(0.658824, 0.658824, 0.658824, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_xqhoj"]
+_data = {
+&"RESET": SubResource("Animation_apybr"),
+&"up_and_down": SubResource("Animation_8twek")
+}
+
 [node name="rm_biome_info_popup" type="Node2D"]
 scale = Vector2(4, 4)
 script = ExtResource("1_8twek")
@@ -140,8 +202,7 @@ libraries = {
 }
 
 [node name="main_info_body" type="AnimatedSprite2D" parent="."]
-position = Vector2(0, 15)
-scale = Vector2(1e-05, 1e-05)
+position = Vector2(3.5, 0)
 sprite_frames = SubResource("SpriteFrames_apybr")
 
 [node name="biome_info_text" type="Label" parent="main_info_body"]
@@ -161,7 +222,6 @@ vertical_alignment = 1
 metadata/_edit_use_anchors_ = true
 
 [node name="local_population_text" type="Label" parent="main_info_body"]
-visible = false
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
@@ -186,9 +246,14 @@ vertical_alignment = 1
 position = Vector2(86, 24)
 texture = ExtResource("3_apybr")
 
+[node name="AnimationPlayer" type="AnimationPlayer" parent="main_info_body/local_population_text/arrow_lp"]
+libraries = {
+&"": SubResource("AnimationLibrary_xqhoj")
+}
+autoplay = "up_and_down"
+
 [node name="region_name_slate" type="Sprite2D" parent="main_info_body"]
 position = Vector2(1.5, -48)
-scale = Vector2(1e-05, 1e-05)
 texture = ExtResource("3_8twek")
 
 [node name="portrait_timer" type="Timer" parent="main_info_body"]
@@ -202,7 +267,5 @@ one_shot = true
 explosiveness = 0.86
 randomness = 0.24
 process_material = ExtResource("7_8twek")
-
-[node name="Camera2D" type="Camera2D" parent="."]
 
 [connection signal="timeout" from="main_info_body/portrait_timer" to="." method="_on_portrait_timer_timeout"]

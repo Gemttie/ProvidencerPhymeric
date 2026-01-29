@@ -4,6 +4,9 @@ extends Sprite2D
 @onready var particle_gen: GPUParticles2D = $particle_gen
 @onready var part_gen_delay: Timer = $part_gen_delay
 
+var portrait_offset : Dictionary = {
+	"gotau" : Vector2(0.0, -0.5)
+}
 
 func set_char_portrait(char_name: String) -> void:
 	# Set random portrait for the main sprite (XIL portraits)
@@ -28,6 +31,12 @@ func set_char_portrait(char_name: String) -> void:
 	
 	if ResourceLoader.exists(char_portrait_image_path):
 		char_image.texture = load(char_portrait_image_path)
+		
+		var char_key = char_name.to_lower()
+		if portrait_offset.has(char_key):
+			char_image.position = portrait_offset[char_key]
+		else:
+			char_image.position = Vector2.ZERO
 		
 	else:
 		print("Character portrait not found: ", char_portrait_image_path)

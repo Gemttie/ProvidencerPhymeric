@@ -25,10 +25,12 @@ script = ExtResource("3_jvdky")
 wrapper_node = NodePath("../..")
 metadata/_custom_type_script = "uid://dvgopgw8hd0ft"
 
-[node name="MapRegionHovered" type="Node" parent="SelectRegionStateMachine"]
+[node name="MapRegionHovered" type="Node" parent="SelectRegionStateMachine" node_paths=PackedStringArray("wrapper_node")]
 script = ExtResource("4_aryyv")
+wrapper_node = NodePath("../..")
 metadata/_custom_type_script = "uid://de6js7gotlkmw"
 
-[node name="MapRegionSelected" type="Node" parent="SelectRegionStateMachine"]
+[node name="MapRegionSelected" type="Node" parent="SelectRegionStateMachine" node_paths=PackedStringArray("wrapper_node")]
 script = ExtResource("5_jrhbi")
+wrapper_node = NodePath("../..")
 metadata/_custom_type_script = "uid://cd0q87nf27frp"

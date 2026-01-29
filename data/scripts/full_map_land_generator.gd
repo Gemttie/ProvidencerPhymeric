@@ -26,6 +26,7 @@ var cluster_info: Dictionary = {}
 var seen_clusters: Dictionary = {}
 
 const MAP_DATA_PATH = "user://map_data.json"
+const MAP_BORDERS_DATA_PATH = "user://map_borders_data.json"
 
 #tile atlas coords
 var beach_ta: Vector2i = Vector2i(6,0)
@@ -92,6 +93,30 @@ func _ready() -> void:
 	var global_pos := tilemap.to_global(local_pos)
 	camera.global_position = global_pos
 	
+	if FileAccess.file_exists(MAP_DATA_PATH):
+		MapDataIntermediary.using_saved_map_data = true
+		generate_map_from_saved_file()
+	else:
+		MapDataIntermediary.using_saved_map_data = false
+		generate_map_from_scratch()
+
+func _process(delta: float) -> void:
+	if not finished_first_pass_gen:
+		return
+
+	var mouse_pos = get_global_mouse_position()
+	var tile = tilemap.local_to_map(tilemap.to_local(mouse_pos))
+
+	if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
+		#reset last hovered cluster when leaving the map
+		last_hovered_cluster_id = -1
+		return
+
+	handle_hover(tile)
+
+
+func generate_map_from_scratch() -> void:
+	print("Generating a new map from scratch")
 	randomize()
 	#generate noise maps
 	temperature = generate_map(temp_period, temp_octaves)
@@ -110,21 +135,58 @@ func _ready() -> void:
 	#gen map
 	create_map_data_file()
 
-func _process(delta: float) -> void:
-	if not finished_first_pass_gen:
-		return
-
-	var mouse_pos = get_global_mouse_position()
-	var tile = tilemap.local_to_map(tilemap.to_local(mouse_pos))
-
-	if tile.x < 0 or tile.x >= width or tile.y < 0 or tile.y >= height:
-		#reset last hovered cluster when leaving the map
-		last_hovered_cluster_id = -1
-		return
-
-	handle_hover(tile)
-
-
+func generate_map_from_saved_file() -> void:
+	print("Generating map from the saved map file")
+	MapDataIntermediary.copy_map_data_from_disk()
+	
+	var source_id = 0
+	var cluster_data_aux = MapDataIntermediary.clusters_data
+	
+	biome_id.clear()
+	
+	for cluster in cluster_data_aux:
+		var biome_type = int(cluster.get("biome", 2.0))  # Convert float to int, default to PLAINS (2)
+		var tiles_array = cluster.get("tiles", [])
+		
+		for tile_coords in tiles_array:
+			# Convert float coordinates to int
+			var pos = Vector2i(int(tile_coords[0]), int(tile_coords[1]))
+			biome_id[pos] = biome_type #store biome type
+			# Draw based on biome type
+			match biome_type:
+				0: # OCEAN
+					tilemap.set_cell(pos, source_id, ocean_ta)
+				1: # BEACH
+					tilemap.set_cell(pos, source_id, beach_ta)
+				2: # PLAINS
+					tilemap.set_cell(pos, source_id, plains_ta)
+				3: # TEMPERATE_FOREST
+					tilemap.set_cell(pos, source_id, temperate_forest_ta)
+				4: # JUNGLE
+					tilemap.set_cell(pos, source_id, jungle_ta)
+				5: # TAIGA
+					tilemap.set_cell(pos, source_id, taiga_ta)
+				6: # MOUNTAIN
+					tilemap.set_cell(pos, source_id, mountains_ta)
+				7: # DESERT
+					tilemap.set_cell(pos, source_id, desert_ta)
+				8: # SWAMP
+					tilemap.set_cell(pos, source_id, swamp_ta)
+				9: # RED_FOREST
+					tilemap.set_cell(pos, source_id, red_forest_ta)
+				10: # SNOW
+					tilemap.set_cell(pos, source_id, snow_ta)
+				11: # LAKE
+					tilemap.set_cell(pos, source_id, lake_ta)
+	
+	finished_first_pass_gen = true
+	
+	#draw borders
+	load_and_draw_borders()
+	
+	var clusters = detect_biome_clusters()
+	build_cluster_lookup(clusters)
+	
 func generate_map(period: float, octaves: int) -> Dictionary:
 	open_noise.seed = randi()
 	open_noise.frequency = 1.0 / period
@@ -393,6 +455,8 @@ func second_gen_pass_rescan_map() -> void:
 		push_warning("Main generation code hasn't run yet, first pass generation incomplete")
 		return
 	
+	print("Running second gen pass")
+	
 	#wipe data
 	temperature.clear()
 	moisture.clear()
@@ -431,12 +495,33 @@ func second_gen_pass_rescan_map() -> void:
 	paint_borders() #repaint borders based on new clusters
 	#put_labels_on_biomes(clusters) #put fresh biome labels
 	
-	#save cluster data into a file so its persistent data
-	save_clusters_data(clusters)
+	#save cluster data into a file so its persistent data, if it doesn't exist yet
+
+	if FileAccess.file_exists(MAP_DATA_PATH):
+		var file = FileAccess.open(MAP_DATA_PATH, FileAccess.READ)
+		if file:
+			var content = file.get_as_text()
+			file.close()
+			# Check if file has content (not just whitespace)
+			if content.strip_edges().is_empty():
+				print("Map data file exists and is empty - saving new data")
+				save_clusters_data(clusters)
+			else:
+				print("Map data file already exists with content - skipping")
+		else:
+			print("Couldn't open existing file - saving new data")
+			save_clusters_data(clusters)
+	else:
+		print("Creating new map data file")
+		save_clusters_data(clusters)
+
+		
 	MapDataIntermediary.copy_map_data_from_disk()
 	#print(MapDataIntermediary.clusters_data)
 	
 	fill_all_empty_tiles() #fill empty tiles
+	save_map_border_data() #save all the data from the borders so it can be re-drawn later if needed
+	
 	#eliminate unescesary layers
 	slice_map_layer.queue_free()
 	final_map_layer.queue_free()
@@ -522,6 +607,7 @@ func fill_empty_tiles_with_darker_adjacent() -> bool:
 	return empty_tiles_found
 
 func fill_all_empty_tiles() -> void:
+	#this is the last function that touches the borders tilemap
 	var max_iterations = 30
 	var iteration = 0
 	
@@ -617,13 +703,14 @@ func debug_print_map_data() -> void:
 
 func save_clusters_data(clusters: Array) -> void:
 	var save_data := {
-		"version": "2.0",
+		"version": "1.0",
 		"width": width,
 		"height": height,
 		"clusters": []
 	}
 
 	var cluster_id := 0
+	var lp_pool := []
 
 	for cluster in clusters:
 		if cluster.is_empty():
@@ -641,7 +728,8 @@ func save_clusters_data(clusters: Array) -> void:
 			"biome": biome,
 			"size": cluster.size(),
 			"anchor": [anchor.x, anchor.y],
-			"tiles": tiles
+			"tiles": tiles,
+			"local_population_pool": lp_pool
 		})
 
 		cluster_id += 1
@@ -672,6 +760,81 @@ func compute_cluster_anchor(cluster: Array) -> Vector2i:
 			best_tile = pos
 
 	return best_tile
+
+
+func save_map_border_data() -> void:
+	var save_data := {
+		"version": "1.0",
+		"width": width,
+		"height": height,
+		"border_tiles": []
+	}
+
+	var used_cells = border_layer.get_used_cells()
+	
+	for cell_pos in used_cells:
+		var atlas_coords = border_layer.get_cell_atlas_coords(cell_pos)
+		
+		if atlas_coords != Vector2i(-1, -1):
+			save_data["border_tiles"].append({
+				"position": [cell_pos.x, cell_pos.y],
+				"atlas_coords": [atlas_coords.x, atlas_coords.y]
+			})
+
+	var file := FileAccess.open(MAP_BORDERS_DATA_PATH, FileAccess.WRITE)
+	if not file:
+		push_error("Failed to save border data")
+		return
+
+	file.store_string(JSON.stringify(save_data))
+	file.close()
+
+	print("Saved %d border tiles" % save_data["border_tiles"].size())
+	
+
+func load_border_data_from_file() -> Dictionary:
+	if not FileAccess.file_exists(MAP_BORDERS_DATA_PATH):
+		push_warning("Border data file doesn't exist")
+		return {}
+	
+	var file = FileAccess.open(MAP_BORDERS_DATA_PATH, FileAccess.READ)
+	if not file:
+		push_error("Failed to open border data file")
+		return {}
+	
+	var json_text = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var error = json.parse(json_text)
+	
+	if error != OK:
+		push_error("Failed to parse border data JSON")
+		return {}
+	
+	var save_data = json.get_data() as Dictionary
+	return save_data
+
+func draw_border_tiles_nogen(border_data: Dictionary) -> void:
+	var source_id = 0
+	
+	# Clear existing border tiles
+	border_layer.clear()
+	
+	# Draw each border tile from the data
+	for tile_data in border_data.get("border_tiles", []):
+		var pos = Vector2i(tile_data["position"][0], tile_data["position"][1])
+		var atlas_coords = Vector2i(tile_data["atlas_coords"][0], tile_data["atlas_coords"][1])
+		
+		border_layer.set_cell(pos, source_id, atlas_coords)
+	
+	
+# Load and draw borders in one go
+func load_and_draw_borders() -> void:
+	var border_data = load_border_data_from_file()
+	if border_data.size() > 0:
+		draw_border_tiles_nogen(border_data)
+
 
 func get_width() -> int: return width
 func get_height() -> int: return height

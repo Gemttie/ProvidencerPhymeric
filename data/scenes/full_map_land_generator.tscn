@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://baqkss15qei4o"]
+[gd_scene load_steps=14 format=3 uid="uid://baqkss15qei4o"]
 
 [ext_resource type="Script" uid="uid://bx8xho5ydd5p2" path="res://data/scripts/full_map_land_generator.gd" id="1_oj6ua"]
 [ext_resource type="TileSet" uid="uid://1cd1sq8oqaw6" path="res://data/tilesets/test_prog_land_gn_ts.tres" id="2_oj6ua"]
@@ -8,6 +8,13 @@
 [ext_resource type="Script" uid="uid://xwhjgghec3h0" path="res://data/scripts/final_map_generator.gd" id="4_q6ydm"]
 [ext_resource type="Script" uid="uid://ffkafsg5atw7" path="res://data/scripts/select_region_handler.gd" id="5_5d77b"]
 [ext_resource type="Script" uid="uid://cpoc0ao3ajfb0" path="res://data/scripts/pos_debug_awawa.gd" id="8_2frr3"]
+
+[sub_resource type="Curve" id="Curve_2frr3"]
+_data = [Vector2(0, 1), 0.0, -0.978495, 0, 1, Vector2(1, 0.0215054), -0.978495, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Gradient" id="Gradient_1a77p"]
+colors = PackedColorArray(1, 1, 0.807843, 0, 1, 1, 0.807843, 0.486275)
 
 [sub_resource type="Gradient" id="Gradient_2frr3"]
 colors = PackedColorArray(0, 0, 0, 0.0784314, 1, 1, 1, 0.0784314)
@@ -28,7 +35,6 @@ border_layer = NodePath("border_map_layer")
 final_map_layer = NodePath("final_map_layer")
 slice_map_layer = NodePath("slice_map_layer")
 camera = NodePath("TopDown2DGenericCamera")
-alt_period = 200.0
 
 [node name="ColorRect" type="ColorRect" parent="."]
 visible = false
@@ -71,10 +77,24 @@ main_biome_map_layer = NodePath("../main_biome_map_layer")
 final_map_layer = NodePath("../final_map_layer")
 main_generator_node = NodePath("..")
 
-[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer")]
+[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer", "pop_up_origin_line")]
 script = ExtResource("5_5d77b")
 main_map_node = NodePath("..")
 empty_hover_region_layer = NodePath("../empty_hover_region_layer")
+pop_up_origin_line = NodePath("../pop_up_origin_line")
+
+[node name="pop_up_origin_line" type="Line2D" parent="."]
+z_index = 11
+width = 350.0
+width_curve = SubResource("Curve_2frr3")
+gradient = SubResource("Gradient_1a77p")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+z_index = 10
+offset_right = 1000.0
+offset_bottom = 1000.0
+texture = SubResource("NoiseTexture2D_2frr3")
+script = ExtResource("8_2frr3")
 
 [node name="TopDown2DGenericCamera" type="Camera2D" parent="." node_paths=PackedStringArray("tilemap_to_clamp_to", "main_node")]
 script = ExtResource("3_ac5hw")
@@ -95,10 +115,3 @@ theme_override_font_sizes/font_size = 30
 text = "FPS:
 "
 script = ExtResource("4_cyup7")
-
-[node name="TextureRect" type="TextureRect" parent="."]
-z_index = 10
-offset_right = 1000.0
-offset_bottom = 1000.0
-texture = SubResource("NoiseTexture2D_2frr3")
-script = ExtResource("8_2frr3")

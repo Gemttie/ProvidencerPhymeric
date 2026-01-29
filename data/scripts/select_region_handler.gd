@@ -2,6 +2,7 @@ extends Node2D
 
 @export var main_map_node : Node2D
 @export var empty_hover_region_layer : TileMapLayer
+@export var pop_up_origin_line : Line2D
 @onready var select_region_wrapper_scene = preload("res://data/scenes/select_region_wrapper.tscn")
 @onready var rm_locked_biome_popup_scene = preload("res://data/scenes/rm_locked_biome_popup.tscn")
 
@@ -11,7 +12,7 @@ var select_modulate_color : Color = Color(1.5, 1.5, 1.5, 1.0)
 
 @onready var hover_info_popup_scene = preload("res://data/scenes/rm_biome_info_popup.tscn")
 var hover_info_popup: Node2D
-var hover_popup_offset: Vector2 = Vector2(0.0, -16.0) # offset from mouse
+var hover_popup_offset: Vector2 = Vector2(0.0, -260.0) # offset from mouse
 
 enum BiomeID {
 	OCEAN,
@@ -33,6 +34,14 @@ var active_region_instances := {}
 var selected_cluster_ids := []
 var current_hovered_cluster_id : int = -1
 
+var mouse_pos
+var viewport
+var screen_size
+var popup_pos
+var rm_biome_info_popup_size = Vector2(300.0,200.0)
+var aditional_popup_margin = 5
+var smaller_popup_pos
+
 # Store popup data per biome/cluster (you'll need to populate this)
 var biome_population_data := {}  # cluster_id -> Array[String] of character portraits
 
@@ -43,15 +52,33 @@ func _ready():
 	# Create popup instance
 	hover_info_popup = hover_info_popup_scene.instantiate()
 	hover_info_popup.visible = false
-	hover_info_popup.z_index = 11  # Higher z-index to appear above everything
+	hover_info_popup.z_index = 12  # Higher z-index to appear above everything
 	add_child(hover_info_popup)
+	
+	viewport = get_viewport()
+	screen_size = viewport.get_visible_rect().size
+	
+	#initialize the line with 2 points
+	pop_up_origin_line.clear_points()
+	pop_up_origin_line.add_point(Vector2.ZERO)
+	pop_up_origin_line.add_point(Vector2.ZERO)
+	pop_up_origin_line.visible = false
 
 func _process(delta: float) -> void:
 	if hover_info_popup.visible:
-		# Position popup relative to mouse (or cluster center)
-		var mouse_pos = get_global_mouse_position()
-		hover_info_popup.global_position = mouse_pos + hover_popup_offset
-
+		mouse_pos = get_global_mouse_position()
+		popup_pos = mouse_pos + hover_popup_offset
+		
+		hover_info_popup.global_position = popup_pos
+		
+		#update origin line
+		smaller_popup_pos = mouse_pos + 0.45 * (popup_pos - mouse_pos)
+		pop_up_origin_line.set_point_position(0, smaller_popup_pos)
+		pop_up_origin_line.set_point_position(1, mouse_pos)
+		pop_up_origin_line.visible = true
+		
+	else:
+		pop_up_origin_line.visible = false
 
 func _input(event):
 	# Check if left mouse button was pressed
@@ -258,6 +285,7 @@ func create_region_instance(cluster_id: int, biome_type: int, tiles_info: Array,
 
 	# Hover animation
 	if is_hovered:
+		#select_region_wrapper.turn_region_state_to("MapRegionHovered")
 		TweenControl.smooth_transition(
 			"position",
 			select_region_wrapper,
