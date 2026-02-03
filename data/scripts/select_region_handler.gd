@@ -4,15 +4,10 @@ extends Node2D
 @export var empty_hover_region_layer : TileMapLayer
 @export var pop_up_origin_line : Line2D
 @onready var select_region_wrapper_scene = preload("res://data/scenes/select_region_wrapper.tscn")
-@onready var rm_locked_biome_popup_scene = preload("res://data/scenes/rm_locked_biome_popup.tscn")
-
-var empty_hover_tiles := {} 
-var hover_modulate_color : Color = Color(1.2, 1.2, 1.2, 1.0)
-var select_modulate_color : Color = Color(1.5, 1.5, 1.5, 1.0)
 
 @onready var hover_info_popup_scene = preload("res://data/scenes/rm_biome_info_popup.tscn")
 var hover_info_popup: Node2D
-var hover_popup_offset: Vector2 = Vector2(0.0, -260.0) # offset from mouse
+var hover_popup_offset: Vector2 = Vector2(0.0, -260.0)
 
 enum BiomeID {
 	OCEAN,
@@ -30,35 +25,21 @@ enum BiomeID {
 }
 
 var biome_names := BiomeID.keys()
-var active_region_instances := {}
-var selected_cluster_ids := []
 var current_hovered_cluster_id : int = -1
-
-var mouse_pos
-var viewport
-var screen_size
-var popup_pos
-var rm_biome_info_popup_size = Vector2(300.0,200.0)
-var aditional_popup_margin = 5
-var smaller_popup_pos
-
-# Store popup data per biome/cluster (you'll need to populate this)
-var biome_population_data := {}  # cluster_id -> Array[String] of character portraits
+var current_region_instance : Node2D = null
+var biome_population_data := {}
 
 func _ready():
 	main_map_node.biome_hovered.connect(_on_biome_hovered)
-	main_map_node.unhoverable_region_hovered.connect(_on_unhoverable_region_hovered)
+	main_map_node.biome_unhovered.connect(_on_biome_unhovered)
 	
 	# Create popup instance
 	hover_info_popup = hover_info_popup_scene.instantiate()
 	hover_info_popup.visible = false
-	hover_info_popup.z_index = 12  # Higher z-index to appear above everything
+	hover_info_popup.z_index = 12
 	add_child(hover_info_popup)
 	
-	viewport = get_viewport()
-	screen_size = viewport.get_visible_rect().size
-	
-	#initialize the line with 2 points
+	# Initialize line
 	pop_up_origin_line.clear_points()
 	pop_up_origin_line.add_point(Vector2.ZERO)
 	pop_up_origin_line.add_point(Vector2.ZERO)
@@ -66,350 +47,39 @@ func _ready():
 
 func _process(delta: float) -> void:
 	if hover_info_popup.visible:
-		mouse_pos = get_global_mouse_position()
-		popup_pos = mouse_pos + hover_popup_offset
+		var mouse_pos = get_global_mouse_position()
+		var popup_pos = mouse_pos + hover_popup_offset
 		
 		hover_info_popup.global_position = popup_pos
 		
-		#update origin line
-		smaller_popup_pos = mouse_pos + 0.45 * (popup_pos - mouse_pos)
+		# Update origin line
+		var smaller_popup_pos = mouse_pos + 0.45 * (popup_pos - mouse_pos)
 		pop_up_origin_line.set_point_position(0, smaller_popup_pos)
 		pop_up_origin_line.set_point_position(1, mouse_pos)
 		pop_up_origin_line.visible = true
-		
 	else:
 		pop_up_origin_line.visible = false
-
-func _input(event):
-	# Check if left mouse button was pressed
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-		var mouse_pos = get_global_mouse_position()
-		
-		# Check all active region instances for click
-		for cluster_id in active_region_instances:
-			var region_data = active_region_instances[cluster_id]
-			var select_region_wrapper = region_data["instance"]
-			var tiles_info = region_data["tiles_info"]
-			var select_region_layer = select_region_wrapper.get_node("select_region_layer")
-			
-			# Convert mouse position to tile coordinates relative to this layer
-			var local_mouse_pos = select_region_wrapper.to_local(mouse_pos)
-			var tile_pos = select_region_layer.local_to_map(local_mouse_pos)
-			
-			# Check if the clicked tile is in this region
-			for tile_data in tiles_info:
-				if tile_data["position"] == tile_pos:
-					toggle_region_selection(cluster_id, region_data)
-					return  # Exit after first match
-	
-	# Right-click to deselect all
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
-		deselect_all_regions()
-
-func toggle_region_selection(cluster_id: int, region_data: Dictionary) -> void:
-	var select_region_wrapper = region_data["instance"]
-	var select_region_layer = select_region_wrapper.get_node("select_region_layer")
-	
-	if cluster_id in selected_cluster_ids:
-		# Deselect the region
-		selected_cluster_ids.erase(cluster_id)
-		select_region_layer.modulate = hover_modulate_color # Reset to hover color
-		
-		# Reset animation position if not hovering this cluster anymore
-		if current_hovered_cluster_id != cluster_id:
-			TweenControl.smooth_transition(
-				"position",
-				select_region_wrapper,
-				Vector2.ZERO,
-				0.3,
-				Tween.TRANS_CUBIC,
-				Tween.EASE_OUT
-			)
-		
-		#print("Deselected cluster: ", cluster_id)
-	else:
-		# Select the region
-		selected_cluster_ids.append(cluster_id)
-		select_region_layer.modulate = select_modulate_color  # Brighter color for selection
-		
-		# Apply lift animation for selected region
-		TweenControl.smooth_transition(
-			"position",
-			select_region_wrapper,
-			Vector2(0, -28),
-			0.3,
-			Tween.TRANS_CUBIC,
-			Tween.EASE_OUT
-		)
-		
-		#print("Selected cluster: ", cluster_id)
-	
-	# Update current hover if we have selections
-	if selected_cluster_ids.size() > 0:
-		current_hovered_cluster_id = -1
-	
-	# Optional: Print all selected clusters
-	#print("Selected clusters: ", selected_cluster_ids)
-
-func deselect_all_regions():
-	for cluster_id in active_region_instances:
-		clear_empty_hover_tiles_for_cluster(cluster_id)
-		active_region_instances[cluster_id]["instance"].queue_free()
-
-	active_region_instances.clear()
-	selected_cluster_ids.clear()
-	current_hovered_cluster_id = -1
-
-
-func _on_unhoverable_region_hovered(value: bool) -> void:
-	if value != true: 
-		return
-	
-	#hover_info_popup.hide_popup()
-	
-	# Only clear non-selected regions when hovering over unhoverable regions
-	if selected_cluster_ids.size() == 0:
-		# If nothing is selected, clear everything
-		clear_all_region_instances()
-	else:
-		# If we have selections, only clear non-selected regions
-		clear_non_selected_regions()
 
 func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> void:
 	# Ignore tiny regions
 	if tiles_info.size() < 12:
+		hover_info_popup.visible = false
 		return
-
-	# ─────────────────────────────────────────────
-	# CASE 1: At least one region is SELECTED
-	# ─────────────────────────────────────────────
-	if selected_cluster_ids.size() > 0:
-		# Never hover a selected region
-		if cluster_id in selected_cluster_ids:
-			return
-
-		# Unhover previous hover (with animation + auto delete)
-		if current_hovered_cluster_id != -1 and current_hovered_cluster_id != cluster_id:
-			animate_back_and_maybe_delete(current_hovered_cluster_id)
-
-		current_hovered_cluster_id = cluster_id
-
-		# Already exists → just update visuals
-		if cluster_id in active_region_instances:
-			var region_data = active_region_instances[cluster_id]
-			var wrapper = region_data["instance"]
-			var layer = wrapper.get_node("select_region_layer")
-
-			layer.modulate = hover_modulate_color
-			TweenControl.smooth_transition(
-				"position",
-				wrapper,
-				Vector2(0, -28),
-				0.3,
-				Tween.TRANS_CUBIC,
-				Tween.EASE_OUT
-			)
-			
-			update_hover_label(cluster_id)
-			return
-
-		# Otherwise create new hover instance
-		create_region_instance(cluster_id, biome_type, tiles_info, true)
-		update_hover_label(cluster_id)
-		return
-
-	# ─────────────────────────────────────────────
-	# CASE 2: NO selected regions (single-hover mode)
-	# ─────────────────────────────────────────────
-	if current_hovered_cluster_id != -1 and current_hovered_cluster_id != cluster_id:
-		animate_back_and_maybe_delete(current_hovered_cluster_id)
-
-	current_hovered_cluster_id = cluster_id
-
-	# Already exists → just animate hover
-	if cluster_id in active_region_instances:
-		var region_data = active_region_instances[cluster_id]
-		var wrapper = region_data["instance"]
-
-		TweenControl.smooth_transition(
-			"position",
-			wrapper,
-			Vector2(0, -28),
-			0.3,
-			Tween.TRANS_CUBIC,
-			Tween.EASE_OUT
-		)
-		update_hover_label(cluster_id)
-		return
-
-	# Clear everything (single-hover mode safety)
-	clear_all_region_instances()
-
-	# Create new hover
-	create_region_instance(cluster_id, biome_type, tiles_info, true)
-	update_hover_label(cluster_id)
-
-func create_region_instance(cluster_id: int, biome_type: int, tiles_info: Array, is_hovered: bool = false):
-	var select_region_wrapper = instantiate_select_wrapper()
-	var select_region_layer = select_region_wrapper.get_node("select_region_layer")
-
-	select_region_layer.clear()
-	select_region_wrapper.position = Vector2.ZERO
-
-	# Color
-	if cluster_id in selected_cluster_ids:
-		select_region_layer.modulate = select_modulate_color
-	else:
-		select_region_layer.modulate = hover_modulate_color
-
-	# Store instance
-	active_region_instances[cluster_id] = {
-		"instance": select_region_wrapper,
-		"tiles_info": tiles_info,
-		"biome_type": biome_type
-	}
-
-	# Init empty tile ownership
-	empty_hover_tiles[cluster_id] = []
-
-	# Draw tiles
-	for tile_data in tiles_info:
-		var position = tile_data["position"]
-		var atlas_coords = tile_data["atlas_coords"]
-
-		select_region_layer.set_cell(position, 0, atlas_coords)
-
-		# Fake empty hover mask
-		empty_hover_region_layer.set_cell(position, 0, Vector2(12, 0))
-		empty_hover_tiles[cluster_id].append(position)
-
-	# Hover animation
-	if is_hovered:
-		#select_region_wrapper.turn_region_state_to("MapRegionHovered")
-		TweenControl.smooth_transition(
-			"position",
-			select_region_wrapper,
-			Vector2(0, -28),
-			0.3,
-			Tween.TRANS_CUBIC,
-			Tween.EASE_OUT
-		)
-
-
-func instantiate_select_wrapper() -> Node2D:
+	
 	var select_region_wrapper_instance = select_region_wrapper_scene.instantiate()
 	main_map_node.add_child(select_region_wrapper_instance)
-	return select_region_wrapper_instance
-
-func clear_all_region_instances():
-	hide_hover_popup()
-	for cluster_id in active_region_instances:
-		clear_empty_hover_tiles_for_cluster(cluster_id)
-		active_region_instances[cluster_id]["instance"].queue_free()
-
-	active_region_instances.clear()
-	selected_cluster_ids.clear()
-	current_hovered_cluster_id = -1
-
-
-func clear_non_selected_regions():
-	var clusters_to_remove := []
-
-	for cluster_id in active_region_instances:
-		if cluster_id not in selected_cluster_ids:
-			clusters_to_remove.append(cluster_id)
-
-	for cluster_id in clusters_to_remove:
-		clear_empty_hover_tiles_for_cluster(cluster_id)
-
-		active_region_instances[cluster_id]["instance"].queue_free()
-		active_region_instances.erase(cluster_id)
-
-	if current_hovered_cluster_id not in active_region_instances:
-		current_hovered_cluster_id = -1
-
-
-func clear_previous_hover(except_cluster_id: int = -1):
-	if current_hovered_cluster_id == -1:
-		return
-	if current_hovered_cluster_id == except_cluster_id:
-		return
-	if current_hovered_cluster_id not in active_region_instances:
-		current_hovered_cluster_id = -1
-		return
+	select_region_wrapper_instance.z_index = 5
+	select_region_wrapper_instance.set_wrapper_id(cluster_id)
+	select_region_wrapper_instance.draw_tilemap_from_data(tiles_info)
+	select_region_wrapper_instance.turn_region_state_to("MapRegionHovered")
 	
-	var region_data = active_region_instances[current_hovered_cluster_id]
-	var wrapper = region_data["instance"]
-	var layer = wrapper.get_node("select_region_layer")
-	
-	# Reset visuals ONLY if not selected
-	animate_back_and_maybe_delete(current_hovered_cluster_id)
-	current_hovered_cluster_id = -1
+	#update_biome_popup(cluster_id)
 
-func animate_back_and_maybe_delete(cluster_id: int):
-	if cluster_id not in active_region_instances:
-		return
-
-	var region_data = active_region_instances[cluster_id]
-	var wrapper: Node2D = region_data["instance"]
-	var layer: TileMapLayer = wrapper.get_node("select_region_layer")
-	
-	if current_hovered_cluster_id == cluster_id:
-		hide_hover_popup()
-	
-	#IMMEDIATELY remove hover-blocking if not selected
-	if cluster_id not in selected_cluster_ids:
-		clear_empty_hover_tiles_for_cluster(cluster_id)
-
-	# Visual settle animation (purely cosmetic)
-	TweenControl.smooth_transition(
-		"position",
-		wrapper,
-		Vector2.ZERO,
-		0.25,
-		Tween.TRANS_CUBIC,
-		Tween.EASE_OUT
-	)
-
-	TweenControl.smooth_transition(
-		"modulate",
-		layer,
-		Color(1.0, 1.0, 1.0, 0.0),
-		0.25,
-		Tween.TRANS_CUBIC,
-		Tween.EASE_OUT
-	)
-
-	await get_tree().create_timer(0.26).timeout
-
-	# Safety checks
-	if not is_instance_valid(wrapper):
-		return
-	if cluster_id in selected_cluster_ids:
-		return
-	if wrapper.position != Vector2.ZERO:
-		return
-
-	# Now delete visuals
-	wrapper.queue_free()
-	active_region_instances.erase(cluster_id)
-
-	if current_hovered_cluster_id == cluster_id:
-		current_hovered_cluster_id = -1
-		#if hover_info_label:
-			#hover_info_label.visible = false
+func _on_biome_unhovered(cluster_id: int) -> void:
+	hover_info_popup.hide_popup()
 
 
-func clear_empty_hover_tiles_for_cluster(cluster_id: int) -> void:
-	if cluster_id not in empty_hover_tiles:
-		return
-
-	for pos in empty_hover_tiles[cluster_id]:
-		empty_hover_region_layer.erase_cell(pos)
-
-	empty_hover_tiles.erase(cluster_id)
-
-func update_hover_label(cluster_id: int) -> void:
+func update_biome_popup(cluster_id: int) -> void:
 	# Search for cluster with matching id
 	var cluster_info = null
 	for cluster in MapDataIntermediary.clusters_data:
@@ -434,6 +104,7 @@ func update_hover_label(cluster_id: int) -> void:
 		hover_info_popup.visible = true
 	else:
 		hover_info_popup.visible = false
+
 
 
 func get_population_for_cluster(cluster_id: int) -> Array[String]:
@@ -552,13 +223,6 @@ func generate_weighted_population(weights: Dictionary) -> Array[String]:
 	result.shuffle()
 	
 	return result
-
-
-func hide_hover_popup():
-	if hover_info_popup:
-		#hover_info_popup.visible = false
-		if hover_info_popup.has_method("hide_popup"):
-			hover_info_popup.hide_popup()
 
 
 func group_same_portraits(population: Array[String]) -> Array[String]:

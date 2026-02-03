@@ -3,8 +3,9 @@ class_name MapRegionSelected
 
 func Enter():
 	#return to normal pos and modulate
-	TweenControl.smooth_transition("position", wrapper_node, wrapper_node.global_position + Vector2(0.0, 20.0), 0.3, Tween.TRANS_CUBIC, Tween.EASE_OUT)
-	wrapper_node.modulate = Color(1.6, 1.6, 1.6, 1)
+	TweenControl.stop_all_tweens(main_wrapper_layer)
+	TweenControl.smooth_transition("position", main_wrapper_layer, wrapper_node.global_position + Vector2(0.0, -20.0), wrapper_node.animation_time, Tween.TRANS_CUBIC, Tween.EASE_OUT)
+	main_wrapper_layer.modulate = Color(1.6, 1.6, 1.6, 1)
 	#Transitioned.emit(self,"EnemyShipFormation")
 func Exit():
 	pass

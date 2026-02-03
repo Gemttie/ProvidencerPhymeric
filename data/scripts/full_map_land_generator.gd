@@ -21,6 +21,8 @@ extends Node2D
 
 @onready var rm_locked_biome_popup_scene = preload("res://data/scenes/rm_locked_biome_popup.tscn")
 
+@onready var being_hovered_label: Label = $TopDown2DGenericCamera/fps_label/being_hovered_label
+
 var cluster_by_tile: Dictionary = {} 
 var cluster_info: Dictionary = {} 
 var seen_clusters: Dictionary = {}
@@ -59,6 +61,7 @@ var border_darker_ta: Vector2i = Vector2i(10,1)
 
 signal biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array)
 signal unhoverable_region_hovered(value : bool)
+signal biome_unhovered(cluster_id: int)
 var last_hovered_cluster_id: int = -1
 
 enum BiomeID {
@@ -85,6 +88,9 @@ var finished_first_pass_gen : bool = false
 
 #noise generator
 var open_noise := FastNoiseLite.new()
+
+var num_of_being_hovered : int = 0
+var wrappers_alive : int = 0
 
 func _ready() -> void:
 	#set camera pos
@@ -113,6 +119,34 @@ func _process(delta: float) -> void:
 		return
 
 	handle_hover(tile)
+	
+	var general_children = get_children()
+	num_of_being_hovered = 0
+	wrappers_alive = 0
+	for children in general_children:
+		if children.is_in_group("region_wrapper"):
+			wrappers_alive += 1
+			if children.being_hovered == true:
+				num_of_being_hovered += 1
+	being_hovered_label.text = "Being hovered: " + str(num_of_being_hovered) + "\nWrappers alive: " + str(wrappers_alive)
+
+
+func _notification(what: int) -> void:
+	match what:
+		NOTIFICATION_WM_MOUSE_EXIT:
+			# Mouse left the window
+			print("mouse exited")
+			handle_mouse_exit()
+		NOTIFICATION_WM_MOUSE_ENTER:
+			# Window lost focus (Alt+Tab, click outside window, etc.)
+			print("mouse entered")
+			handle_mouse_exit()
+
+func handle_mouse_exit() -> void:
+	# Unhover any currently hovered cluster
+	if last_hovered_cluster_id != -1:
+		emit_signal("biome_unhovered", last_hovered_cluster_id)
+		last_hovered_cluster_id = -1
 
 
 func generate_map_from_scratch() -> void:
@@ -642,17 +676,28 @@ func build_cluster_lookup(clusters: Array) -> void:
 func handle_hover(tile: Vector2i):
 	#handle mouse hover over tiles, emitting cluster data only when entering a new cluster
 	if not biome_id.has(tile):
-		last_hovered_cluster_id = -1
+		# Mouse left the map or is on invalid tile
+		if last_hovered_cluster_id != -1:
+			# Unhover the currently hovered cluster
+			emit_signal("biome_unhovered", last_hovered_cluster_id)
+			last_hovered_cluster_id = -1
 		return
 
 	var cluster_id = cluster_by_tile.get(tile, -1)
 	if cluster_id == -1:
-		last_hovered_cluster_id = -1
+		# Mouse is on a tile without a cluster
+		if last_hovered_cluster_id != -1:
+			emit_signal("biome_unhovered", last_hovered_cluster_id)
+			last_hovered_cluster_id = -1
 		return
 	
-
 	#only emit if we entered a new cluster
 	if cluster_id != last_hovered_cluster_id:
+		# First, unhover the previous cluster
+		if last_hovered_cluster_id != -1:
+			emit_signal("biome_unhovered", last_hovered_cluster_id)
+		
+		# Update to the new cluster
 		last_hovered_cluster_id = cluster_id
 		
 		if cluster_info.has(cluster_id):
@@ -668,8 +713,17 @@ func handle_hover(tile: Vector2i):
 			var tiles_data = get_cluster_tiles_info(cluster_tiles)
 			#emit the signal with comprehensive cluster data
 			emit_signal("biome_hovered", cluster_id, biome_type, tiles_data)
-			#print("Emitted cluster %d: %s with %d tiles" % [cluster_id, BiomeID.keys()[biome_type], tiles_data.size()])
-
+		
+func unhover_previous_cluster(cluster_id) -> void:
+	# Find and unhover the previous cluster's wrapper
+	for child in get_children():
+		if child.is_in_group("region_wrapper"):
+			if child.get_wrapper_id() == last_hovered_cluster_id:
+				# delete wrapper when hunhovered
+				emit_signal("biome_unhovered", cluster_id)
+				return
+			
+			
 func get_cluster_tiles_info(cluster: Array) -> Array:
 	#returns array of tile data for the entire cluster
 	var out: Array = []

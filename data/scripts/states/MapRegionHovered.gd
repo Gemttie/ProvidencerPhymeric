@@ -3,10 +3,12 @@ class_name MapRegionHovered
 
 func Enter():
 	#return to normal pos and modulate
-	TweenControl.smooth_transition("position", wrapper_node, wrapper_node.global_position + Vector2(0.0, 20.0), 0.3, Tween.TRANS_CUBIC, Tween.EASE_OUT)
-	wrapper_node.modulate = Color(1.3, 1.3, 1.3, 1)
+	TweenControl.stop_all_tweens(main_wrapper_layer)
+	TweenControl.smooth_transition("position", main_wrapper_layer, wrapper_node.global_position + Vector2(0.0, -20.0), wrapper_node.animation_time, Tween.TRANS_CUBIC, Tween.EASE_OUT)
+	TweenControl.smooth_transition("modulate", main_wrapper_layer, Color(1.3 ,1.3 ,1.3 ,1.0), wrapper_node.animation_time)
+	wrapper_node.being_hovered = true
 func Exit():
-	pass
+	wrapper_node.being_hovered = false
 	
 func Update(_delta: float):
 	pass

@@ -2,6 +2,7 @@ extends Node
 class_name SelectRegionState
 
 @export var wrapper_node : Node2D
+@export var main_wrapper_layer : TileMapLayer
 signal Transitioned
 
 func Enter():
