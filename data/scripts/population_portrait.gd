@@ -4,6 +4,8 @@ extends Sprite2D
 @onready var particle_gen: GPUParticles2D = $particle_gen
 @onready var part_gen_delay: Timer = $part_gen_delay
 
+var initial_pos : Vector2
+
 var portrait_offset : Dictionary = {
 	"gotau" : Vector2(0.0, -0.5)
 }
@@ -47,3 +49,19 @@ func gen_particles_with_delay(delay : float) -> void:
 
 func _on_part_gen_delay_timeout() -> void:
 	particle_gen.restart()
+
+
+func _on_start_wooble_delay_timeout() -> void:
+	pass
+	#this works but i should have put the whole  current tree inside another node
+	#because we're having issues with position
+	#just make a node2d and put eveyrthing inside it and adjust the code
+	#i'm too lazy sorry
+	#this code works tho:
+	
+	#initial_pos = global_position
+	#TweenControl.infinite_smooth_transition(
+		#"position", self,
+		#[initial_pos + Vector2(0, 6), initial_pos + Vector2(0, -6)],
+		#0.5, 0.0, Tween.TransitionType.TRANS_SINE, Tween.EaseType.EASE_OUT, -1 
+	#)

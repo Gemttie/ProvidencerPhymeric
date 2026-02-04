@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://baqkss15qei4o"]
+[gd_scene load_steps=16 format=3 uid="uid://baqkss15qei4o"]
 
 [ext_resource type="Script" uid="uid://bx8xho5ydd5p2" path="res://data/scripts/full_map_land_generator.gd" id="1_oj6ua"]
 [ext_resource type="TileSet" uid="uid://1cd1sq8oqaw6" path="res://data/tilesets/test_prog_land_gn_ts.tres" id="2_oj6ua"]
@@ -7,6 +7,8 @@
 [ext_resource type="Script" uid="uid://csw0a3s88dgxd" path="res://data/scripts/fps_label.gd" id="4_cyup7"]
 [ext_resource type="Script" uid="uid://xwhjgghec3h0" path="res://data/scripts/final_map_generator.gd" id="4_q6ydm"]
 [ext_resource type="Script" uid="uid://ffkafsg5atw7" path="res://data/scripts/select_region_handler.gd" id="5_5d77b"]
+[ext_resource type="Texture2D" uid="uid://ccg0j0jxchjto" path="res://assets/game_sprites/particles/circle_particle_transparent_glow_simple.png" id="6_1a77p"]
+[ext_resource type="Material" uid="uid://drh32saqbu78y" path="res://data/particle process materials/generic_white_particle_fountain_with_fade_01_ppm.tres" id="7_nqqem"]
 [ext_resource type="Script" uid="uid://cpoc0ao3ajfb0" path="res://data/scripts/pos_debug_awawa.gd" id="8_2frr3"]
 
 [sub_resource type="Curve" id="Curve_2frr3"]
@@ -77,17 +79,25 @@ main_biome_map_layer = NodePath("../main_biome_map_layer")
 final_map_layer = NodePath("../final_map_layer")
 main_generator_node = NodePath("..")
 
-[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer", "pop_up_origin_line")]
+[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer", "pop_up_origin_line", "pop_up_origin_line_particle_gen")]
 script = ExtResource("5_5d77b")
 main_map_node = NodePath("..")
 empty_hover_region_layer = NodePath("../empty_hover_region_layer")
 pop_up_origin_line = NodePath("../pop_up_origin_line")
+pop_up_origin_line_particle_gen = NodePath("../pop_up_origin_line_particle_gen")
 
 [node name="pop_up_origin_line" type="Line2D" parent="."]
 z_index = 11
 width = 350.0
 width_curve = SubResource("Curve_2frr3")
 gradient = SubResource("Gradient_1a77p")
+
+[node name="pop_up_origin_line_particle_gen" type="GPUParticles2D" parent="."]
+z_index = 11
+amount = 15
+texture = ExtResource("6_1a77p")
+lifetime = 1.4
+process_material = ExtResource("7_nqqem")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 z_index = 10

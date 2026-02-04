@@ -3,6 +3,7 @@ extends Node2D
 @export var main_map_node : Node2D
 @export var empty_hover_region_layer : TileMapLayer
 @export var pop_up_origin_line : Line2D
+@export var pop_up_origin_line_particle_gen : GPUParticles2D
 @onready var select_region_wrapper_scene = preload("res://data/scenes/select_region_wrapper.tscn")
 
 @onready var hover_info_popup_scene = preload("res://data/scenes/rm_biome_info_popup.tscn")
@@ -44,6 +45,8 @@ func _ready():
 	pop_up_origin_line.add_point(Vector2.ZERO)
 	pop_up_origin_line.add_point(Vector2.ZERO)
 	pop_up_origin_line.visible = false
+	pop_up_origin_line_particle_gen.emitting = false
+	
 
 func _process(delta: float) -> void:
 	if hover_info_popup.visible:
@@ -51,14 +54,20 @@ func _process(delta: float) -> void:
 		var popup_pos = mouse_pos + hover_popup_offset
 		
 		hover_info_popup.global_position = popup_pos
+		pop_up_origin_line_particle_gen.global_position = mouse_pos
 		
 		# Update origin line
 		var smaller_popup_pos = mouse_pos + 0.45 * (popup_pos - mouse_pos)
 		pop_up_origin_line.set_point_position(0, smaller_popup_pos)
 		pop_up_origin_line.set_point_position(1, mouse_pos)
 		pop_up_origin_line.visible = true
+		pop_up_origin_line_particle_gen.emitting = true
 	else:
 		pop_up_origin_line.visible = false
+		pop_up_origin_line_particle_gen.emitting = false
+		
+	if Input.is_action_just_pressed("ui_accept"):
+		print("biome pop data :" + str(MapDataIntermediary.additional_map_data))
 
 func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> void:
 	# Ignore tiny regions
@@ -73,7 +82,7 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 	select_region_wrapper_instance.draw_tilemap_from_data(tiles_info)
 	select_region_wrapper_instance.turn_region_state_to("MapRegionHovered")
 	
-	#update_biome_popup(cluster_id)
+	update_biome_popup(cluster_id)
 
 func _on_biome_unhovered(cluster_id: int) -> void:
 	hover_info_popup.hide_popup()
@@ -97,10 +106,9 @@ func update_biome_popup(cluster_id: int) -> void:
 		
 		# Get population data (you need to implement this based on your game)
 		var population_data = get_population_for_cluster(cluster_id)
-		var sorted_population_data = group_same_portraits(population_data)
 		
 		# Show popup
-		hover_info_popup.show_biome_info(biome_name, tiles_count, cluster_id, sorted_population_data)
+		hover_info_popup.show_biome_info(biome_name, tiles_count, cluster_id, population_data)
 		hover_info_popup.visible = true
 	else:
 		hover_info_popup.visible = false
@@ -108,8 +116,11 @@ func update_biome_popup(cluster_id: int) -> void:
 
 
 func get_population_for_cluster(cluster_id: int) -> Array[String]:
-	if cluster_id in biome_population_data:
-		return biome_population_data[cluster_id]
+	var existing_population = MapDataIntermediary.get_biome_population_data(str(cluster_id))
+	#
+	#if we already have saved population data, return it
+	if not existing_population.is_empty():
+		return existing_population as Array[String]
 	
 	#generate mock data based on biome type
 	var cluster_info = null
@@ -193,7 +204,11 @@ func get_population_for_cluster(cluster_id: int) -> Array[String]:
 				xil_pool_chance["eping"] += 2
 		
 		#generate weighted random population
-		return generate_weighted_population(xil_pool_chance)
+		var weighted_population = generate_weighted_population(xil_pool_chance)
+		var organized_population = group_same_portraits(weighted_population)
+		#save population in peristent data file
+		MapDataIntermediary.set_biome_population_data(str(cluster_id), organized_population)
+		return organized_population
 	return []
 
 

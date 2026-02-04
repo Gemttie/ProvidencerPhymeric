@@ -29,6 +29,7 @@ var seen_clusters: Dictionary = {}
 
 const MAP_DATA_PATH = "user://map_data.json"
 const MAP_BORDERS_DATA_PATH = "user://map_borders_data.json"
+const MAP_ADDITIONAL_DATA_PATH = "user://additional_map_data.json"
 
 #tile atlas coords
 var beach_ta: Vector2i = Vector2i(6,0)
@@ -105,6 +106,7 @@ func _ready() -> void:
 	else:
 		MapDataIntermediary.using_saved_map_data = false
 		generate_map_from_scratch()
+		
 
 func _process(delta: float) -> void:
 	if not finished_first_pass_gen:
@@ -135,11 +137,9 @@ func _notification(what: int) -> void:
 	match what:
 		NOTIFICATION_WM_MOUSE_EXIT:
 			# Mouse left the window
-			print("mouse exited")
 			handle_mouse_exit()
 		NOTIFICATION_WM_MOUSE_ENTER:
 			# Window lost focus (Alt+Tab, click outside window, etc.)
-			print("mouse entered")
 			handle_mouse_exit()
 
 func handle_mouse_exit() -> void:

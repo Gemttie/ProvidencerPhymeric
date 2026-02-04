@@ -153,8 +153,47 @@ func triple_custom_smooth_transition(
 				#tween.kill()
 				#break
 				
+
+
+func infinite_smooth_transition(
+	property: String,
+	target_node: Node2D,
+	values: Array,  # Array of values to cycle through
+	duration: float = 0.5,
+	delay: float = 0.1,
+	transition_type: Tween.TransitionType = Tween.TRANS_QUAD,
+	ease_type: Tween.EaseType = Tween.EASE_OUT,
+	loop_count: int = -1
+) -> void:
+	stop_all_tweens(target_node)
+	var tween = target_node.create_tween()
+	tween.set_loops(loop_count)
+	
+	for i in range(values.size()):
+		var next_index = (i + 1) % values.size()
+		
+		tween.tween_property(target_node, property, values[next_index], duration)\
+			.set_trans(transition_type)\
+			.set_ease(ease_type)
+		
+		tween.tween_interval(delay)
+
+
+
 func stop_all_tweens(target_node: Node) -> void:
-	# Simple and effective - just kill all tweens
-	var tweens: Array = target_node.get_tree().get_processed_tweens()
-	for tween in tweens:
-		tween.kill()
+	#stop tweens on the target node itself
+	if target_node.has_method("get_tweens"):
+		var node_tweens = target_node.get_tweens()
+		for tween in node_tweens:
+			tween.kill()
+	
+	#also check all children recursively
+	for child in target_node.get_children():
+		stop_all_tweens(child)
+
+func stop_tweens_no_children_affected(target_node: Node) -> void:
+	#stop tweens ONLY on the target node itself, not its children
+	if target_node.has_method("get_tweens"):
+		var node_tweens = target_node.get_tweens()
+		for tween in node_tweens:
+			tween.kill()
