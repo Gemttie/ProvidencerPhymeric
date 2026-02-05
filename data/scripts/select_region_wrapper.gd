@@ -1,10 +1,13 @@
 extends Node2D
-@export var unhovered_state : Node
+
 @export var select_region_layer : TileMapLayer
 @export var wrapper_shadow_layer : TileMapLayer
 @export var delete_timer : Timer
+@export var select_region_state_machine : SelectRegionStateMachine
 
+var current_state : SelectRegionState
 var being_hovered : bool
+var being_selected : bool = false
 var wrapper_id
 var animation_time : float = 0.3
 
@@ -13,7 +16,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	#fix visual errors when the biome is unhovered
-	if being_hovered: return
+	if being_hovered or being_selected: return
 	
 	if select_region_layer.position != Vector2.ZERO:
 		TweenControl.smooth_transition("position",select_region_layer,Vector2.ZERO,animation_time,Tween.TRANS_CUBIC,Tween.EASE_OUT)
@@ -60,7 +63,9 @@ func draw_tilemap_from_data(tiles_info: Array) -> void:
 	
 
 func turn_region_state_to(stateName : String) -> void:
-	unhovered_state.transition_state_to(stateName)
+	#pull the curent state from the state machine first then use that state to call the transition signal
+	current_state = select_region_state_machine.current_state
+	current_state.transition_state_to(stateName)
 	
 func _on_biome_unhovered(cluster_id) -> void:
 	if cluster_id == wrapper_id:

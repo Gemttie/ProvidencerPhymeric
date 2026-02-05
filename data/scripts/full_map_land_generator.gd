@@ -63,6 +63,7 @@ var border_darker_ta: Vector2i = Vector2i(10,1)
 signal biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array)
 signal unhoverable_region_hovered(value : bool)
 signal biome_unhovered(cluster_id: int)
+signal biome_clicked(cluster_id: int)
 var last_hovered_cluster_id: int = -1
 
 enum BiomeID {
@@ -91,6 +92,7 @@ var finished_first_pass_gen : bool = false
 var open_noise := FastNoiseLite.new()
 
 var num_of_being_hovered : int = 0
+var num_of_being_selected : int = 0
 var wrappers_alive : int = 0
 
 func _ready() -> void:
@@ -122,15 +124,22 @@ func _process(delta: float) -> void:
 
 	handle_hover(tile)
 	
+	if Input.is_action_just_pressed("primary_selection"):
+		handle_click(tile)
+	
 	var general_children = get_children()
 	num_of_being_hovered = 0
+	num_of_being_selected = 0
 	wrappers_alive = 0
 	for children in general_children:
 		if children.is_in_group("region_wrapper"):
 			wrappers_alive += 1
 			if children.being_hovered == true:
 				num_of_being_hovered += 1
-	being_hovered_label.text = "Being hovered: " + str(num_of_being_hovered) + "\nWrappers alive: " + str(wrappers_alive)
+			if children.being_selected == true:
+				num_of_being_selected += 1
+				
+	being_hovered_label.text = "Being hovered: " + str(num_of_being_hovered) + "\nBeing selected: " + str(num_of_being_selected) +"\nWrappers alive: " + str(wrappers_alive)
 
 
 func _notification(what: int) -> void:
@@ -739,6 +748,29 @@ func get_cluster_tiles_info(cluster: Array) -> Array:
 				"altitude": altitude.get(pos, 0.0)
 			})
 	return out
+	
+
+func handle_click(tile: Vector2i) -> void:
+	if not biome_id.has(tile):
+		return
+		
+	var cluster_id = cluster_by_tile.get(tile, -1)
+	if cluster_id == -1:
+		return
+		
+	if cluster_info.has(cluster_id):
+		var info = cluster_info[cluster_id]
+		var biome_type = info["biome"]
+		
+		# Skip ocean and lake clicks if desired (optional)
+		if biome_type == BiomeID.OCEAN or biome_type == BiomeID.LAKE:
+			return
+		
+		# Emit the simple click signal with just the cluster ID
+		emit_signal("biome_clicked", cluster_id)
+		print("emited signal click for " + str(cluster_id))
+
+
 
 func create_map_data_file() -> void:
 	#gen map data file if it doesn't exist yet

@@ -7,12 +7,12 @@
 [ext_resource type="Script" uid="uid://de6js7gotlkmw" path="res://data/scripts/states/MapRegionHovered.gd" id="4_aryyv"]
 [ext_resource type="Script" uid="uid://cd0q87nf27frp" path="res://data/scripts/states/MapRegionSelected.gd" id="5_jrhbi"]
 
-[node name="select_region_wrapper" type="Node2D" node_paths=PackedStringArray("unhovered_state", "select_region_layer", "wrapper_shadow_layer", "delete_timer") groups=["region_wrapper"]]
+[node name="select_region_wrapper" type="Node2D" node_paths=PackedStringArray("select_region_layer", "wrapper_shadow_layer", "delete_timer", "select_region_state_machine") groups=["region_wrapper"]]
 script = ExtResource("1_7j7df")
-unhovered_state = NodePath("SelectRegionStateMachine/MapRegionUnhovered")
 select_region_layer = NodePath("select_region_layer")
 wrapper_shadow_layer = NodePath("wrapper_shadow_layer")
 delete_timer = NodePath("count_down_to_destruction")
+select_region_state_machine = NodePath("SelectRegionStateMachine")
 
 [node name="select_region_layer" type="TileMapLayer" parent="."]
 z_index = 1

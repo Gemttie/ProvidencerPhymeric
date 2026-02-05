@@ -33,6 +33,7 @@ var biome_population_data := {}
 func _ready():
 	main_map_node.biome_hovered.connect(_on_biome_hovered)
 	main_map_node.biome_unhovered.connect(_on_biome_unhovered)
+	main_map_node.biome_clicked.connect(_on_biome_clicked)
 	
 	# Create popup instance
 	hover_info_popup = hover_info_popup_scene.instantiate()
@@ -86,6 +87,18 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 
 func _on_biome_unhovered(cluster_id: int) -> void:
 	hover_info_popup.hide_popup()
+
+
+func _on_biome_clicked(cluster_id: int) -> void:
+	var main_node_children = main_map_node.get_children()
+	for children in main_node_children:
+		if children.is_in_group("region_wrapper") and children.wrapper_id == cluster_id:
+			#switch selected on and off depending if the biome was already being selected
+			if !children.being_selected:
+				children.turn_region_state_to("MapRegionSelected")
+				print(children)
+			else:
+				children.turn_region_state_to("MapRegionHovered")
 
 
 func update_biome_popup(cluster_id: int) -> void:
