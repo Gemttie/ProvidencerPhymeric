@@ -70,7 +70,9 @@ func turn_region_state_to(stateName : String) -> void:
 func _on_biome_unhovered(cluster_id) -> void:
 	if cluster_id == wrapper_id:
 		being_hovered = false
-		delete_timer.start(animation_time)
+		#only delete when unhovered if the biome is not being selected
+		if !being_selected:
+			delete_timer.start(animation_time)
 
 func set_wrapper_id(value) -> void: wrapper_id = value
 func get_wrapper_id() -> int: return wrapper_id

@@ -5,11 +5,18 @@ var additional_map_data
 const MAP_DATA_PATH = "user://map_data.json"
 const MAP_ADDITIONAL_DATA_PATH = "user://additional_map_data.json"
 var using_saved_map_data : bool = false
+var selected_biomes_info : Dictionary
 
 
 func _ready() -> void:
 	initialize_additional_map_data_file()
 	additional_map_data = load_additional_map_data()
+	
+	#selected_biomes_info = {
+		#"id": {
+			#"click_pos" :
+		#}
+	#}
 
 func copy_map_data_from_disk() -> void:
 	clusters_data = load_clusters_data_full()["clusters"]

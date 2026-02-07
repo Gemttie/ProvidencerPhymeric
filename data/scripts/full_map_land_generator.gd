@@ -125,7 +125,8 @@ func _process(delta: float) -> void:
 	handle_hover(tile)
 	
 	if Input.is_action_just_pressed("primary_selection"):
-		handle_click(tile)
+		var click_pos = get_global_mouse_position()
+		handle_click(tile, click_pos)
 	
 	var general_children = get_children()
 	num_of_being_hovered = 0
@@ -750,7 +751,7 @@ func get_cluster_tiles_info(cluster: Array) -> Array:
 	return out
 	
 
-func handle_click(tile: Vector2i) -> void:
+func handle_click(tile: Vector2i, click_pos : Vector2) -> void:
 	if not biome_id.has(tile):
 		return
 		
@@ -768,6 +769,12 @@ func handle_click(tile: Vector2i) -> void:
 		
 		# Emit the simple click signal with just the cluster ID
 		emit_signal("biome_clicked", cluster_id)
+		#save the clicked pos on the intermediary global
+		MapDataIntermediary.selected_biomes_info[biome_id] = {
+		"id": cluster_id,
+		"click_pos": click_pos
+		}
+		
 		print("emited signal click for " + str(cluster_id))
 
 

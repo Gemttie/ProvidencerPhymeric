@@ -76,6 +76,12 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 		hover_info_popup.visible = false
 		return
 	
+	#only generate another wrapper of that id if there is not another one existing there, aka when we have a selected wwrapper
+	var node_children = main_map_node.get_children()
+	for child_e in node_children:
+		if child_e.is_in_group("region_wrapper") and child_e.being_selected and child_e.wrapper_id == cluster_id:
+			return
+	
 	var select_region_wrapper_instance = select_region_wrapper_scene.instantiate()
 	main_map_node.add_child(select_region_wrapper_instance)
 	select_region_wrapper_instance.z_index = 5
