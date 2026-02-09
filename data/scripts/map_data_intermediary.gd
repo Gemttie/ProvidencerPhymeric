@@ -5,18 +5,13 @@ var additional_map_data
 const MAP_DATA_PATH = "user://map_data.json"
 const MAP_ADDITIONAL_DATA_PATH = "user://additional_map_data.json"
 var using_saved_map_data : bool = false
-var selected_biomes_info : Dictionary
+var travel_tag_display_info : Array = []
 
 
 func _ready() -> void:
 	initialize_additional_map_data_file()
 	additional_map_data = load_additional_map_data()
 	
-	#selected_biomes_info = {
-		#"id": {
-			#"click_pos" :
-		#}
-	#}
 
 func copy_map_data_from_disk() -> void:
 	clusters_data = load_clusters_data_full()["clusters"]
@@ -193,3 +188,27 @@ func get_all_id_data(id_number: String) -> Dictionary:
 	if additional_map_data["id_data"].has(id_number):
 		return additional_map_data["id_data"][id_number].duplicate(true)  # Return a copy
 	return {}
+
+
+func add_travel_tag_display_info(id_value : int) -> void:
+	if !travel_tag_display_info.has(id_value):
+		travel_tag_display_info.append(id_value)
+
+func get_travel_tag_index(id_value: int) -> int:
+	var index_val : int = travel_tag_display_info.find(id_value)
+	return index_val
+
+
+func get_biome_anchor_global(biome_id: int, tilemap : TileMapLayer) -> Vector2:
+	for cluster in clusters_data:
+		if cluster.get("id", -1) == biome_id:
+			var anchor_tile = Vector2(cluster["anchor"][0], cluster["anchor"][1])
+			
+			#convert tile position to global coordinates
+			var local_pos := tilemap.map_to_local(anchor_tile)
+			var global_pos := tilemap.to_global(local_pos)
+			
+			return global_pos
+	
+	#return null Vector2 if biome not found
+	return Vector2.ZERO

@@ -3,7 +3,7 @@ class_name MapRegionSelected
 
 func Enter():
 	#return to normal pos and modulate
-	print("select for :" + str(wrapper_node.wrapper_id))
+	#print("select for :" + str(wrapper_node.wrapper_id))
 	TweenControl.stop_all_tweens(main_wrapper_layer)
 	#TweenControl.smooth_transition("position", main_wrapper_layer, wrapper_node.global_position + Vector2(0.0, -20.0), wrapper_node.animation_time, Tween.TRANS_CUBIC, Tween.EASE_OUT)
 	TweenControl.double_custom_smooth_transition(

@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://baqkss15qei4o"]
+[gd_scene load_steps=12 format=3 uid="uid://baqkss15qei4o"]
 
 [ext_resource type="Script" uid="uid://bx8xho5ydd5p2" path="res://data/scripts/full_map_land_generator.gd" id="1_oj6ua"]
 [ext_resource type="TileSet" uid="uid://1cd1sq8oqaw6" path="res://data/tilesets/test_prog_land_gn_ts.tres" id="2_oj6ua"]
@@ -7,16 +7,7 @@
 [ext_resource type="Script" uid="uid://csw0a3s88dgxd" path="res://data/scripts/fps_label.gd" id="4_cyup7"]
 [ext_resource type="Script" uid="uid://xwhjgghec3h0" path="res://data/scripts/final_map_generator.gd" id="4_q6ydm"]
 [ext_resource type="Script" uid="uid://ffkafsg5atw7" path="res://data/scripts/select_region_handler.gd" id="5_5d77b"]
-[ext_resource type="Texture2D" uid="uid://ccg0j0jxchjto" path="res://assets/game_sprites/particles/circle_particle_transparent_glow_simple.png" id="6_1a77p"]
-[ext_resource type="Material" uid="uid://drh32saqbu78y" path="res://data/particle process materials/generic_white_particle_fountain_with_fade_01_ppm.tres" id="7_nqqem"]
 [ext_resource type="Script" uid="uid://cpoc0ao3ajfb0" path="res://data/scripts/pos_debug_awawa.gd" id="8_2frr3"]
-
-[sub_resource type="Curve" id="Curve_2frr3"]
-_data = [Vector2(0, 1), 0.0, -0.978495, 0, 1, Vector2(1, 0.0215054), -0.978495, 0.0, 1, 0]
-point_count = 2
-
-[sub_resource type="Gradient" id="Gradient_1a77p"]
-colors = PackedColorArray(1, 1, 0.807843, 0, 1, 1, 0.807843, 0.486275)
 
 [sub_resource type="Gradient" id="Gradient_2frr3"]
 colors = PackedColorArray(0, 0, 0, 0.0784314, 1, 1, 1, 0.0784314)
@@ -79,25 +70,10 @@ main_biome_map_layer = NodePath("../main_biome_map_layer")
 final_map_layer = NodePath("../final_map_layer")
 main_generator_node = NodePath("..")
 
-[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer", "pop_up_origin_line", "pop_up_origin_line_particle_gen")]
+[node name="select_region_handler" type="Node2D" parent="." node_paths=PackedStringArray("main_map_node", "empty_hover_region_layer")]
 script = ExtResource("5_5d77b")
 main_map_node = NodePath("..")
 empty_hover_region_layer = NodePath("../empty_hover_region_layer")
-pop_up_origin_line = NodePath("../pop_up_origin_line")
-pop_up_origin_line_particle_gen = NodePath("../pop_up_origin_line_particle_gen")
-
-[node name="pop_up_origin_line" type="Line2D" parent="."]
-z_index = 11
-width = 350.0
-width_curve = SubResource("Curve_2frr3")
-gradient = SubResource("Gradient_1a77p")
-
-[node name="pop_up_origin_line_particle_gen" type="GPUParticles2D" parent="."]
-z_index = 11
-amount = 15
-texture = ExtResource("6_1a77p")
-lifetime = 1.4
-process_material = ExtResource("7_nqqem")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 z_index = 10
@@ -128,12 +104,13 @@ script = ExtResource("4_cyup7")
 
 [node name="being_hovered_label" type="Label" parent="TopDown2DGenericCamera/fps_label"]
 layout_mode = 0
-offset_left = -150.0
+offset_left = -356.0
 offset_top = 50.0
 offset_right = 63.0
 offset_bottom = 137.0
 size_flags_horizontal = 8
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 30
-text = "being_hovered
-"
+text = "being_hovered : 1"
+horizontal_alignment = 2
+autowrap_mode = 1

@@ -16,6 +16,48 @@ func smooth_transition(
 		.set_ease(ease_type)\
 		.set_delay(delay)
 
+#------------------------
+
+func smooth_transition_then_node_function(
+	property: String,
+	target_node: Node2D,
+	target_value,
+	function_executing_node: Node,    # The node that has the function to execute
+	function_to_execute,              # Can be Callable or String
+	function_args: Array = [],        # Optional arguments for the function
+	duration: float = 0.5,
+	transition_type: Tween.TransitionType = Tween.TRANS_QUAD,
+	ease_type: Tween.EaseType = Tween.EASE_OUT,
+	delay: float = 0.0
+) -> void:
+	var tween = target_node.create_tween()
+	tween.tween_property(target_node, property, target_value, duration)\
+		.set_trans(transition_type)\
+		.set_ease(ease_type)\
+		.set_delay(delay)
+	
+	# Determine if function_to_execute is Callable or String
+	if function_to_execute is Callable:
+		tween.finished.connect(_execute_callable.bind(function_executing_node, function_to_execute), CONNECT_ONE_SHOT)
+	elif function_to_execute is String:
+		tween.finished.connect(_execute_by_name.bind(function_executing_node, function_to_execute, function_args), CONNECT_ONE_SHOT)
+	else:
+		push_error("function_to_execute must be either Callable or String")
+
+# Helper for Callable execution
+func _execute_callable(function_executing_node: Node, function: Callable) -> void:
+	if is_instance_valid(function_executing_node) and function.is_valid():
+		function.call()
+
+# Helper for string function name execution
+func _execute_by_name(function_executing_node: Node, function_name: String, args: Array) -> void:
+	if is_instance_valid(function_executing_node) and function_executing_node.has_method(function_name):
+		if args.is_empty():
+			function_executing_node.call(function_name)
+		else:
+			function_executing_node.callv(function_name, args)
+			
+#------------------------
 
 #tween to a value, stay for some time and tween back to the original value
 func ping_pong_smooth_transition(

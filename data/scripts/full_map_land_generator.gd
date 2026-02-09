@@ -64,6 +64,7 @@ signal biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array)
 signal unhoverable_region_hovered(value : bool)
 signal biome_unhovered(cluster_id: int)
 signal biome_clicked(cluster_id: int)
+signal biome_secondary_clicked(cluster_id: int)
 var last_hovered_cluster_id: int = -1
 
 enum BiomeID {
@@ -94,6 +95,7 @@ var open_noise := FastNoiseLite.new()
 var num_of_being_hovered : int = 0
 var num_of_being_selected : int = 0
 var wrappers_alive : int = 0
+var popups_alive : int = 0
 
 func _ready() -> void:
 	#set camera pos
@@ -128,10 +130,15 @@ func _process(delta: float) -> void:
 		var click_pos = get_global_mouse_position()
 		handle_click(tile, click_pos)
 	
+	if Input.is_action_just_pressed("secondary_selection"):
+		var click_pos = get_global_mouse_position()
+		handle_secondary_click(tile, click_pos)
+	
 	var general_children = get_children()
 	num_of_being_hovered = 0
 	num_of_being_selected = 0
 	wrappers_alive = 0
+	popups_alive = 0
 	for children in general_children:
 		if children.is_in_group("region_wrapper"):
 			wrappers_alive += 1
@@ -139,8 +146,10 @@ func _process(delta: float) -> void:
 				num_of_being_hovered += 1
 			if children.being_selected == true:
 				num_of_being_selected += 1
+		if children.is_in_group("biome_info_popup"):
+			popups_alive += 1
 				
-	being_hovered_label.text = "Being hovered: " + str(num_of_being_hovered) + "\nBeing selected: " + str(num_of_being_selected) +"\nWrappers alive: " + str(wrappers_alive)
+	being_hovered_label.text = "Being hovered: " + str(num_of_being_hovered) + "\nBeing selected: " + str(num_of_being_selected) +"\nWrappers alive: " + str(wrappers_alive) + "\n Popups alive : " + str(popups_alive) + "\nTravel tags: " + str(MapDataIntermediary.travel_tag_display_info)
 
 
 func _notification(what: int) -> void:
@@ -769,13 +778,26 @@ func handle_click(tile: Vector2i, click_pos : Vector2) -> void:
 		
 		# Emit the simple click signal with just the cluster ID
 		emit_signal("biome_clicked", cluster_id)
-		#save the clicked pos on the intermediary global
-		MapDataIntermediary.selected_biomes_info[biome_id] = {
-		"id": cluster_id,
-		"click_pos": click_pos
-		}
 		
-		print("emited signal click for " + str(cluster_id))
+
+func handle_secondary_click(tile: Vector2i, click_pos : Vector2) -> void:
+	if not biome_id.has(tile):
+		return
+		
+	var cluster_id = cluster_by_tile.get(tile, -1)
+	if cluster_id == -1:
+		return
+		
+	if cluster_info.has(cluster_id):
+		var info = cluster_info[cluster_id]
+		var biome_type = info["biome"]
+		
+		#skip ocean and lake clicks
+		if biome_type == BiomeID.OCEAN or biome_type == BiomeID.LAKE:
+			return
+			
+		MapDataIntermediary.add_travel_tag_display_info(cluster_id)
+		emit_signal("biome_secondary_clicked", cluster_id)
 
 
 
@@ -931,3 +953,4 @@ func load_and_draw_borders() -> void:
 
 func get_width() -> int: return width
 func get_height() -> int: return height
+func get_main_tilemap() -> TileMapLayer: return tilemap

@@ -2,13 +2,9 @@ extends Node2D
 
 @export var main_map_node : Node2D
 @export var empty_hover_region_layer : TileMapLayer
-@export var pop_up_origin_line : Line2D
-@export var pop_up_origin_line_particle_gen : GPUParticles2D
 @onready var select_region_wrapper_scene = preload("res://data/scenes/select_region_wrapper.tscn")
-
 @onready var hover_info_popup_scene = preload("res://data/scenes/rm_biome_info_popup.tscn")
-var hover_info_popup: Node2D
-var hover_popup_offset: Vector2 = Vector2(0.0, -260.0)
+@onready var biome_map_num_displayer_scene = preload("res://data/scenes/biome_map_number_displayer.tscn")
 
 enum BiomeID {
 	OCEAN,
@@ -34,46 +30,13 @@ func _ready():
 	main_map_node.biome_hovered.connect(_on_biome_hovered)
 	main_map_node.biome_unhovered.connect(_on_biome_unhovered)
 	main_map_node.biome_clicked.connect(_on_biome_clicked)
-	
-	# Create popup instance
-	hover_info_popup = hover_info_popup_scene.instantiate()
-	hover_info_popup.visible = false
-	hover_info_popup.z_index = 12
-	add_child(hover_info_popup)
-	
-	# Initialize line
-	pop_up_origin_line.clear_points()
-	pop_up_origin_line.add_point(Vector2.ZERO)
-	pop_up_origin_line.add_point(Vector2.ZERO)
-	pop_up_origin_line.visible = false
-	pop_up_origin_line_particle_gen.emitting = false
-	
+	main_map_node.biome_secondary_clicked.connect(_on_biome_secondary_clicked)
 
-func _process(delta: float) -> void:
-	if hover_info_popup.visible:
-		var mouse_pos = get_global_mouse_position()
-		var popup_pos = mouse_pos + hover_popup_offset
-		
-		hover_info_popup.global_position = popup_pos
-		pop_up_origin_line_particle_gen.global_position = mouse_pos
-		
-		# Update origin line
-		var smaller_popup_pos = mouse_pos + 0.45 * (popup_pos - mouse_pos)
-		pop_up_origin_line.set_point_position(0, smaller_popup_pos)
-		pop_up_origin_line.set_point_position(1, mouse_pos)
-		pop_up_origin_line.visible = true
-		pop_up_origin_line_particle_gen.emitting = true
-	else:
-		pop_up_origin_line.visible = false
-		pop_up_origin_line_particle_gen.emitting = false
-		
-	if Input.is_action_just_pressed("ui_accept"):
-		print("biome pop data :" + str(MapDataIntermediary.additional_map_data))
 
 func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> void:
 	# Ignore tiny regions
 	if tiles_info.size() < 12:
-		hover_info_popup.visible = false
+		#hover_info_popup.visible = false
 		return
 	
 	#only generate another wrapper of that id if there is not another one existing there, aka when we have a selected wwrapper
@@ -81,7 +44,15 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 	for child_e in node_children:
 		if child_e.is_in_group("region_wrapper") and child_e.being_selected and child_e.wrapper_id == cluster_id:
 			return
+		if child_e.is_in_group("biome_info_popup") and child_e.biome_id == cluster_id:
+			return
 	
+	#instantiate rm_biome_info_popup
+	var rm_biome_info_popup_instance = hover_info_popup_scene.instantiate()
+	rm_biome_info_popup_instance.biome_id = cluster_id
+	main_map_node.add_child(rm_biome_info_popup_instance)
+	
+	#instatiate wrapper
 	var select_region_wrapper_instance = select_region_wrapper_scene.instantiate()
 	main_map_node.add_child(select_region_wrapper_instance)
 	select_region_wrapper_instance.z_index = 5
@@ -89,10 +60,14 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 	select_region_wrapper_instance.draw_tilemap_from_data(tiles_info)
 	select_region_wrapper_instance.turn_region_state_to("MapRegionHovered")
 	
-	update_biome_popup(cluster_id)
+	update_biome_popup(cluster_id, rm_biome_info_popup_instance)
 
 func _on_biome_unhovered(cluster_id: int) -> void:
-	hover_info_popup.hide_popup()
+	var main_node_children = main_map_node.get_children()
+	for m_child in main_node_children:
+		if m_child.is_in_group("biome_info_popup") and m_child.biome_id == cluster_id:
+			if !m_child.is_persistent:
+				m_child.hide_and_delete()
 
 
 func _on_biome_clicked(cluster_id: int) -> void:
@@ -105,9 +80,35 @@ func _on_biome_clicked(cluster_id: int) -> void:
 				print(children)
 			else:
 				children.turn_region_state_to("MapRegionHovered")
+		
+		#turn on persistence for biome info popup so it doesnt disapear when clicked and unhovered
+		if children.is_in_group("biome_info_popup") and children.biome_id == cluster_id:
+			#switch on and off the persistance
+			if !children.is_persistent:
+				children.initiate_persistance()
+			else:
+				children.is_persistent = false
 
 
-func update_biome_popup(cluster_id: int) -> void:
+func _on_biome_secondary_clicked(cluster_id: int) -> void:
+	var m_children = main_map_node.get_children()
+	for children_nodes in m_children:
+		if children_nodes.is_in_group("biome_info_popup") and children_nodes.biome_id == cluster_id:
+			var main_info_body_sprite = children_nodes.get_node_or_null("main_info_body")
+			instantiate_travel_tag_displayer_at(main_info_body_sprite, cluster_id)
+
+func instantiate_travel_tag_displayer_at(parent_node, biome_id : int) -> void:
+	var num_displayer_offset = Vector2(0, -66)
+	var biome_map_num_displayer_instance = biome_map_num_displayer_scene.instantiate()
+	#look for the corresponding wrapper and attach the number displayer to it's main info body node
+	parent_node.add_child(biome_map_num_displayer_instance)
+	biome_map_num_displayer_instance.position = num_displayer_offset
+	biome_map_num_displayer_instance.set_number(MapDataIntermediary.get_travel_tag_index(biome_id) + 1)
+	biome_map_num_displayer_instance.biome_id = biome_id
+	biome_map_num_displayer_instance.z_index = -1
+
+
+func update_biome_popup(cluster_id: int, rm_biome_popup : Node2D) -> void:
 	# Search for cluster with matching id
 	var cluster_info = null
 	for cluster in MapDataIntermediary.clusters_data:
@@ -127,10 +128,10 @@ func update_biome_popup(cluster_id: int) -> void:
 		var population_data = get_population_for_cluster(cluster_id)
 		
 		# Show popup
-		hover_info_popup.show_biome_info(biome_name, tiles_count, cluster_id, population_data)
-		hover_info_popup.visible = true
+		rm_biome_popup.show_biome_info(biome_name, tiles_count, cluster_id, population_data)
+		rm_biome_popup.visible = true
 	else:
-		hover_info_popup.visible = false
+		rm_biome_popup.visible = false
 
 
 

@@ -1,0 +1,66 @@
+[gd_scene load_steps=10 format=3 uid="uid://d4li521d68mqy"]
+
+[ext_resource type="Script" uid="uid://tsrow1wc7ntn" path="res://data/scripts/biome_map_number_displayer.gd" id="1_6mcay"]
+[ext_resource type="Texture2D" uid="uid://uj0vjw0s715q" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_1.png" id="2_gd3ib"]
+[ext_resource type="Texture2D" uid="uid://cim26w12gc2mp" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_2.png" id="3_75bu3"]
+[ext_resource type="Texture2D" uid="uid://bx7lnk6iwvqha" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_3.png" id="4_uifjh"]
+[ext_resource type="Texture2D" uid="uid://cknwmphjsfovm" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_4.png" id="5_b7k5f"]
+[ext_resource type="Texture2D" uid="uid://sr66ho7fbpl3" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_5.png" id="6_ky5ow"]
+[ext_resource type="Texture2D" uid="uid://cenuwv0xxa806" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_6.png" id="7_0lilu"]
+[ext_resource type="FontFile" uid="uid://bs5mf4gcj5yk2" path="res://assets/fonts/Tiny5-Regular.ttf" id="8_75bu3"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_34iwu"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_gd3ib")
+}, {
+"duration": 1.0,
+"texture": ExtResource("3_75bu3")
+}, {
+"duration": 1.0,
+"texture": ExtResource("4_uifjh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_b7k5f")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_ky5ow")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_0lilu")
+}],
+"loop": true,
+"name": &"shine",
+"speed": 10.0
+}]
+
+[node name="biome_map_number_displayer" type="Node2D" groups=["travel_tag_displayer"]]
+script = ExtResource("1_6mcay")
+
+[node name="anim_sprite" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_34iwu")
+animation = &"shine"
+
+[node name="play_random_timer" type="Timer" parent="anim_sprite"]
+one_shot = true
+
+[node name="num_text" type="Label" parent="anim_sprite"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -35.0
+offset_top = -28.5
+offset_right = 5.0
+offset_bottom = -5.5
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_fonts/font = ExtResource("8_75bu3")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="origin_line" type="Line2D" parent="anim_sprite"]
+
+[connection signal="timeout" from="anim_sprite/play_random_timer" to="." method="_on_play_random_timer_timeout"]
