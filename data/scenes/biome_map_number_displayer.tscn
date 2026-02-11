@@ -88,8 +88,9 @@ _data = {
 &"glow": SubResource("Animation_75bu3")
 }
 
-[node name="biome_map_number_displayer" type="Node2D" groups=["travel_tag_displayer"]]
+[node name="biome_map_number_displayer" type="Node2D" node_paths=PackedStringArray("origin_line") groups=["deletable_travel_tag_displayer", "travel_tag_displayer"]]
 script = ExtResource("1_6mcay")
+origin_line = NodePath("origin_line")
 
 [node name="anim_sprite" type="AnimatedSprite2D" parent="."]
 sprite_frames = SubResource("SpriteFrames_34iwu")
@@ -128,5 +129,9 @@ libraries = {
 [node name="displayer_anims_timer" type="Timer" parent="displayer_anims"]
 one_shot = true
 
+[node name="death_timer" type="Timer" parent="."]
+one_shot = true
+
 [connection signal="timeout" from="anim_sprite/play_random_timer" to="." method="_on_play_random_timer_timeout"]
 [connection signal="timeout" from="displayer_anims/displayer_anims_timer" to="." method="_on_displayer_anims_timer_timeout"]
+[connection signal="timeout" from="death_timer" to="." method="_on_death_timer_timeout"]

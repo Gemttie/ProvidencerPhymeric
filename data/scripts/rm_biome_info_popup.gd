@@ -15,9 +15,11 @@ extends Node2D
 @export var tween_and_part_delay : float = 0.2
 @export var pop_up_origin_line : Line2D
 @export var pop_up_origin_line_particle_gen : GPUParticles2D
+@export var coll_jitter_fix_timer : Timer
 
 var biome_id : int
 var is_persistent : bool = false #wether this isntance stays when is not hovered
+var anim_coll_enable : bool = true
 
 var k = 0
 var portrait_list_aux : Array[String] = []
@@ -185,9 +187,16 @@ func hide_and_delete() -> void:
 	
 #I'm using main tile map here because we need the settings and tiles of the tilemap to handle the anchor position
 func clone_aux_travel_tag_displayer_at(parent_node, biome_id : int, g_pos : Vector2, main_tilemap : TileMapLayer) -> void:
+	#first,only isntatiate if there is not an identical displayer already existing
+	var parent_wiwi = parent_node.get_children()
+	for p_child in parent_wiwi:
+		if p_child.is_in_group("travel_tag_displayer") and p_child.biome_id == biome_id:
+			return
+		
 	var biome_map_num_displayer_instance = biome_map_num_displayer_scene.instantiate()
 	#look for the corresponding wrapper and attach the number displayer to it's main info body node
 	parent_node.add_child(biome_map_num_displayer_instance)
+	biome_map_num_displayer_instance.is_waypoint = true
 	biome_map_num_displayer_instance.global_position = g_pos
 	biome_map_num_displayer_instance.set_number(MapDataIntermediary.get_travel_tag_index(biome_id) + 1)
 	biome_map_num_displayer_instance.biome_id = biome_id
@@ -216,8 +225,12 @@ func get_size_description(cluster_size: int) -> String:
 
 
 func _on_area_2d_area_entered(area: Area2D) -> void:
+	var anim_time : float = 0.4
+	if !anim_coll_enable: return
+	
 	if is_persistent:
-		var anim_time : float = 0.4
+		anim_coll_enable = false
+		coll_jitter_fix_timer.start(anim_time)
 		labels_arrow_anims.stop()
 		TweenControl.stop_all_tweens(biome_info_text)
 		TweenControl.stop_all_tweens(local_population_text)
@@ -236,8 +249,8 @@ func _on_area_2d_area_entered(area: Area2D) -> void:
 		
 
 func _on_area_2d_area_exited(area: Area2D) -> void:
+	var anim_time : float = 0.4
 	if is_persistent:
-		var anim_time : float = 0.4
 		TweenControl.smooth_transition_for_node_only("modulate", biome_info_text, Color(1,1,1,1), anim_time)
 		TweenControl.smooth_transition_for_node_only("modulate", local_population_text, Color(1,1,1,1), anim_time)
 		TweenControl.smooth_transition("material:shader_parameter/progress", main_info_body, 0.0, anim_time)
@@ -251,3 +264,7 @@ func _on_area_2d_area_exited(area: Area2D) -> void:
 				TweenControl.stop_all_tweens(mib_child)
 				TweenControl.smooth_transition("modulate", mib_child, Color(1.0, 1.0, 1.0, 1.0), anim_time)
 				TweenControl.smooth_transition("scale", mib_child, Vector2(1.0, 1.0), anim_time)
+
+
+func _on_coll_jitter_fix_timer_timeout() -> void:
+	anim_coll_enable = true

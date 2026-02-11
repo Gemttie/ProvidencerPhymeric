@@ -6,6 +6,8 @@ extends Node2D
 @onready var hover_info_popup_scene = preload("res://data/scenes/rm_biome_info_popup.tscn")
 @onready var biome_map_num_displayer_scene = preload("res://data/scenes/biome_map_number_displayer.tscn")
 
+signal delete_displayer(biome_id: int)
+
 enum BiomeID {
 	OCEAN,
 	BEACH,
@@ -61,6 +63,23 @@ func _on_biome_hovered(cluster_id: int, biome_type: int, tiles_info: Array) -> v
 	select_region_wrapper_instance.turn_region_state_to("MapRegionHovered")
 	
 	update_biome_popup(cluster_id, rm_biome_info_popup_instance)
+	
+	#insantiate the travel tag number displayer if there's alreayd one there for the biome
+	#we have to check if there is a rm_biome_info_pop_up_existing and if there is a travel tag of that id around
+	
+	var node_children_aux = main_map_node.get_children()
+	var target_info_popup = null
+	for child_tag in node_children_aux:
+		if child_tag.is_in_group("biome_info_popup") and child_tag.biome_id == cluster_id:
+			target_info_popup = child_tag
+			
+	for child_tag_aux in node_children_aux:
+		#we are affecting only the travel tags that are a waypoint, not the ones that are children to a popup
+		if child_tag_aux.is_in_group("travel_tag_displayer") and child_tag_aux.biome_id == cluster_id and target_info_popup != null and child_tag_aux.is_waypoint == true:
+			var main_info_body_sprite = target_info_popup.get_node_or_null("main_info_body")
+			instantiate_travel_tag_displayer_at(main_info_body_sprite, cluster_id)
+			child_tag_aux.shrink_and_change_visuals()
+
 
 func _on_biome_unhovered(cluster_id: int) -> void:
 	var main_node_children = main_map_node.get_children()
@@ -90,21 +109,41 @@ func _on_biome_clicked(cluster_id: int) -> void:
 
 
 func _on_biome_secondary_clicked(cluster_id: int) -> void:
-	var m_children = main_map_node.get_children()
-	for children_nodes in m_children:
-		if children_nodes.is_in_group("biome_info_popup") and children_nodes.biome_id == cluster_id:
-			var main_info_body_sprite = children_nodes.get_node_or_null("main_info_body")
-			instantiate_travel_tag_displayer_at(main_info_body_sprite, cluster_id)
+	#the secondary click must untag the biome if it was already travel tagged
+	var travel_tagged_biomes : Array = MapDataIntermediary.travel_tag_display_info
+	var is_already_tagged = travel_tagged_biomes.has(cluster_id)
+	
+	if is_already_tagged:
+		MapDataIntermediary.travel_tag_display_info.erase(cluster_id)
+		#if it has the id, kill all travel tags for that id, and remove it from the global variable array
+		emit_signal("delete_displayer", cluster_id)
+		
+		var all_nodes = main_map_node.get_children()
+		for displayer_nodes in all_nodes:
+			if displayer_nodes.is_in_group("deletable_travel_tag_displayer"):
+				displayer_nodes.update_all_travel_tag_numbers()
+		
 
-func instantiate_travel_tag_displayer_at(parent_node, biome_id : int) -> void:
+	else:
+		#if the biome was not travel tagged yet, tag it, and add the id to the global var
+		MapDataIntermediary.add_travel_tag_display_info(cluster_id)
+		var m_children = main_map_node.get_children()
+		for children_nodes in m_children:
+			if children_nodes.is_in_group("biome_info_popup") and children_nodes.biome_id == cluster_id:
+				var main_info_body_sprite = children_nodes.get_node_or_null("main_info_body")
+				instantiate_travel_tag_displayer_at(main_info_body_sprite, cluster_id)
+
+
+func instantiate_travel_tag_displayer_at(body_sprite_node, biome_id : int) -> void:
 	var num_displayer_offset = Vector2(0, -66)
 	var biome_map_num_displayer_instance = biome_map_num_displayer_scene.instantiate()
 	#look for the corresponding wrapper and attach the number displayer to it's main info body node
-	parent_node.add_child(biome_map_num_displayer_instance)
+	body_sprite_node.add_child(biome_map_num_displayer_instance)
 	biome_map_num_displayer_instance.position = num_displayer_offset
 	biome_map_num_displayer_instance.set_number(MapDataIntermediary.get_travel_tag_index(biome_id) + 1)
 	biome_map_num_displayer_instance.biome_id = biome_id
 	biome_map_num_displayer_instance.z_index = -1
+	self.delete_displayer.connect(biome_map_num_displayer_instance._on_delete_displayer)
 
 
 func update_biome_popup(cluster_id: int, rm_biome_popup : Node2D) -> void:

@@ -796,7 +796,7 @@ func handle_secondary_click(tile: Vector2i, click_pos : Vector2) -> void:
 		if biome_type == BiomeID.OCEAN or biome_type == BiomeID.LAKE:
 			return
 			
-		MapDataIntermediary.add_travel_tag_display_info(cluster_id)
+
 		emit_signal("biome_secondary_clicked", cluster_id)
 
 
