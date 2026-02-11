@@ -5,9 +5,12 @@ extends Node2D
 @onready var main_info_body: AnimatedSprite2D = $main_info_body
 @onready var portrait_timer: Timer = $main_info_body/portrait_timer
 @onready var biome_info_text: Label = $main_info_body/biome_info_text
+@onready var local_population_text: Label = $main_info_body/local_population_text
 @onready var popup_anims: AnimationPlayer = $popup_anims
 @onready var main_particle_gen: GPUParticles2D = $main_particle_gen
 @onready var region_name_slate: Sprite2D = $main_info_body/region_name_slate
+@onready var labels_arrow_anims: AnimationPlayer = $main_info_body/local_population_text/arrow_lp/labels_arrow_anims
+
 
 @export var tween_and_part_delay : float = 0.2
 @export var pop_up_origin_line : Line2D
@@ -188,7 +191,7 @@ func clone_aux_travel_tag_displayer_at(parent_node, biome_id : int, g_pos : Vect
 	biome_map_num_displayer_instance.global_position = g_pos
 	biome_map_num_displayer_instance.set_number(MapDataIntermediary.get_travel_tag_index(biome_id) + 1)
 	biome_map_num_displayer_instance.biome_id = biome_id
-	biome_map_num_displayer_instance.z_index = 7
+	biome_map_num_displayer_instance.z_index = 9
 	biome_map_num_displayer_instance.scale = Vector2(4.0, 4.0)
 	
 	#get anchor pos for that biome and tween animate to it
@@ -210,3 +213,41 @@ func get_size_description(cluster_size: int) -> String:
 	if cluster_size > 40960 and cluster_size <= 163840: return "ENORMOUS"
 	if cluster_size > 163840 and cluster_size <= 655360: return "COLOSSAL"
 	return "CONTINENT SIZED"
+
+
+func _on_area_2d_area_entered(area: Area2D) -> void:
+	if is_persistent:
+		var anim_time : float = 0.4
+		labels_arrow_anims.stop()
+		TweenControl.stop_all_tweens(biome_info_text)
+		TweenControl.stop_all_tweens(local_population_text)
+		TweenControl.smooth_transition_for_node_only("modulate", biome_info_text, Color(3.0, 3.0, 3.0, 0.0), anim_time)
+		TweenControl.smooth_transition_for_node_only("modulate", local_population_text, Color(3.0, 3.0, 3.0, 0.0), anim_time)
+		TweenControl.smooth_transition("material:shader_parameter/progress", main_info_body, 1.0, anim_time)
+		TweenControl.smooth_transition("material:shader_parameter/progress", region_name_slate, 1.0, anim_time)
+		
+		#affect the portraits visually as well
+		var main_info_body_children = main_info_body.get_children()
+		for mib_child in main_info_body_children:
+			if mib_child.is_in_group("tiny_c_portrait_ui"):
+				TweenControl.stop_all_tweens(mib_child)
+				TweenControl.smooth_transition("modulate", mib_child, Color(0.0, 0.0, 1.0, 0.5), anim_time)				
+				TweenControl.smooth_transition("scale", mib_child, Vector2(0.25, 0.25), anim_time)
+		
+
+func _on_area_2d_area_exited(area: Area2D) -> void:
+	if is_persistent:
+		var anim_time : float = 0.4
+		TweenControl.smooth_transition_for_node_only("modulate", biome_info_text, Color(1,1,1,1), anim_time)
+		TweenControl.smooth_transition_for_node_only("modulate", local_population_text, Color(1,1,1,1), anim_time)
+		TweenControl.smooth_transition("material:shader_parameter/progress", main_info_body, 0.0, anim_time)
+		TweenControl.smooth_transition("material:shader_parameter/progress", region_name_slate, 0.0, anim_time)
+		labels_arrow_anims.play("up_and_down")
+		
+		#affect the portraits visually as well
+		var main_info_body_children = main_info_body.get_children()
+		for mib_child in main_info_body_children:
+			if mib_child.is_in_group("tiny_c_portrait_ui"):
+				TweenControl.stop_all_tweens(mib_child)
+				TweenControl.smooth_transition("modulate", mib_child, Color(1.0, 1.0, 1.0, 1.0), anim_time)
+				TweenControl.smooth_transition("scale", mib_child, Vector2(1.0, 1.0), anim_time)

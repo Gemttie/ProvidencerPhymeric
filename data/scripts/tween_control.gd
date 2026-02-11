@@ -16,6 +16,29 @@ func smooth_transition(
 		.set_ease(ease_type)\
 		.set_delay(delay)
 
+#this version is for Node ONLY, not suitable for Node2d
+#it's useful for when a node like label doesnt allow u to use the previous function version
+func smooth_transition_for_node_only(
+	property : String,
+	target_node : Node,
+	target_value,
+	duration: float = 0.5,
+	transition_type: Tween.TransitionType = Tween.TRANS_QUAD,
+	ease_type: Tween.EaseType = Tween.EASE_OUT,
+	delay: float = 0.0
+) -> void:
+	# Basic validation
+	if not is_instance_valid(target_node):
+		push_error("Target node is not valid")
+		return
+	
+	# Create and configure the tween
+	var tween = target_node.create_tween()
+	tween.tween_property(target_node, property, target_value, duration)\
+		.set_trans(transition_type)\
+		.set_ease(ease_type)\
+		.set_delay(delay)
+
 #------------------------
 
 func smooth_transition_then_node_function(

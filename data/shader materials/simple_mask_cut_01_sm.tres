@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://sxa4hwpe76dl"]
+
+[ext_resource type="Shader" uid="uid://fp3345a20qlc" path="res://data/shaders/mask_cut_shader_01.gdshader" id="1_ol2vi"]
+[ext_resource type="Texture2D" uid="uid://bsyv6bet1y04e" path="res://assets/game_sprites/ui/misc/simple_dot_mask_overlay_04.png" id="2_ol2vi"]
+
+[resource]
+resource_local_to_scene = true
+shader = ExtResource("1_ol2vi")
+shader_parameter/mask_texture = ExtResource("2_ol2vi")
+shader_parameter/progress = 0.0
+shader_parameter/mask_pixel_size = Vector2(100, 100)

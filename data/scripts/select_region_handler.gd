@@ -77,7 +77,6 @@ func _on_biome_clicked(cluster_id: int) -> void:
 			#switch selected on and off depending if the biome was already being selected
 			if !children.being_selected:
 				children.turn_region_state_to("MapRegionSelected")
-				print(children)
 			else:
 				children.turn_region_state_to("MapRegionHovered")
 		

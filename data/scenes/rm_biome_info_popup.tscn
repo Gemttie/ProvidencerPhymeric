@@ -1,7 +1,8 @@
-[gd_scene load_steps=20 format=3 uid="uid://c8pxroa5g8mgj"]
+[gd_scene load_steps=22 format=3 uid="uid://c8pxroa5g8mgj"]
 
 [ext_resource type="Script" uid="uid://b2k2m05tg3c3n" path="res://data/scripts/rm_biome_info_popup.gd" id="1_8twek"]
 [ext_resource type="Texture2D" uid="uid://qqe3nswcc5fs" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_mbody.png" id="1_cen2n"]
+[ext_resource type="Material" uid="uid://sxa4hwpe76dl" path="res://data/shader materials/simple_mask_cut_01_sm.tres" id="1_cmwel"]
 [ext_resource type="FontFile" uid="uid://bs5mf4gcj5yk2" path="res://assets/fonts/Tiny5-Regular.ttf" id="1_dftrv"]
 [ext_resource type="Texture2D" uid="uid://dvb05kr6corum" path="res://assets/game_sprites/particles/circle_particle_simple.png" id="3_4rm5m"]
 [ext_resource type="Texture2D" uid="uid://b4tse1sgclnlg" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_biome_info_popup_simple_tsign.png" id="3_8twek"]
@@ -309,6 +310,9 @@ _data = {
 &"up_and_down": SubResource("Animation_8twek")
 }
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_xqhoj"]
+size = Vector2(82.5, 77.5)
+
 [sub_resource type="Curve" id="Curve_lpvb4"]
 _data = [Vector2(0, 1), 0.0, -0.978495, 0, 1, Vector2(1, 0.0215054), -0.978495, 0.0, 1, 0]
 point_count = 2
@@ -320,7 +324,7 @@ colors = PackedColorArray(1, 1, 0.807843, 0, 1, 1, 0.807843, 0.486275)
 scale = Vector2(4, 4)
 script = ExtResource("1_8twek")
 pop_up_origin_line = NodePath("pop_up_origin_line")
-pop_up_origin_line_particle_gen = NodePath("pop_up_origin_line_particle_gen")
+pop_up_origin_line_particle_gen = NodePath("pop_up_origin_line/pop_up_origin_line_particle_gen")
 
 [node name="popup_anims" type="AnimationPlayer" parent="."]
 libraries = {
@@ -328,8 +332,8 @@ libraries = {
 }
 
 [node name="main_info_body" type="AnimatedSprite2D" parent="."]
-position = Vector2(0, 15)
-scale = Vector2(1e-05, 1e-05)
+material = ExtResource("1_cmwel")
+position = Vector2(3.5, 0)
 sprite_frames = SubResource("SpriteFrames_apybr")
 
 [node name="biome_info_text" type="Label" parent="main_info_body"]
@@ -373,19 +377,27 @@ vertical_alignment = 1
 position = Vector2(86, 24)
 texture = ExtResource("3_apybr")
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="main_info_body/local_population_text/arrow_lp"]
+[node name="labels_arrow_anims" type="AnimationPlayer" parent="main_info_body/local_population_text/arrow_lp"]
 libraries = {
 &"": SubResource("AnimationLibrary_xqhoj")
 }
 autoplay = "up_and_down"
 
 [node name="region_name_slate" type="Sprite2D" parent="main_info_body"]
+material = ExtResource("1_cmwel")
 position = Vector2(1.5, -48)
-scale = Vector2(1e-05, 1e-05)
 texture = ExtResource("3_8twek")
 
 [node name="portrait_timer" type="Timer" parent="main_info_body"]
 one_shot = true
+
+[node name="Area2D" type="Area2D" parent="main_info_body"]
+collision_layer = 1024
+collision_mask = 1024
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="main_info_body/Area2D"]
+position = Vector2(1, -3.5)
+shape = SubResource("RectangleShape2D_xqhoj")
 
 [node name="main_particle_gen" type="GPUParticles2D" parent="."]
 emitting = false
@@ -397,16 +409,20 @@ randomness = 0.24
 process_material = ExtResource("7_8twek")
 
 [node name="pop_up_origin_line" type="Line2D" parent="."]
+top_level = true
 z_index = 11
 width = 350.0
 width_curve = SubResource("Curve_lpvb4")
 gradient = SubResource("Gradient_ll3pa")
 
-[node name="pop_up_origin_line_particle_gen" type="GPUParticles2D" parent="."]
+[node name="pop_up_origin_line_particle_gen" type="GPUParticles2D" parent="pop_up_origin_line"]
 z_index = 11
-amount = 15
+scale = Vector2(4, 4)
+amount = 10
 texture = ExtResource("8_xqhoj")
 lifetime = 1.4
 process_material = ExtResource("9_cmwel")
 
 [connection signal="timeout" from="main_info_body/portrait_timer" to="." method="_on_portrait_timer_timeout"]
+[connection signal="area_entered" from="main_info_body/Area2D" to="." method="_on_area_2d_area_entered"]
+[connection signal="area_exited" from="main_info_body/Area2D" to="." method="_on_area_2d_area_exited"]

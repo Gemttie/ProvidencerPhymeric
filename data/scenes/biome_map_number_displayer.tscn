@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://d4li521d68mqy"]
+[gd_scene load_steps=14 format=3 uid="uid://d4li521d68mqy"]
 
 [ext_resource type="Script" uid="uid://tsrow1wc7ntn" path="res://data/scripts/biome_map_number_displayer.gd" id="1_6mcay"]
 [ext_resource type="Texture2D" uid="uid://uj0vjw0s715q" path="res://assets/game_sprites/ui/region_map/biome_info_popup/simple/region_map_simple_number_displayer/region_map_simple_number_displayer_1.png" id="2_gd3ib"]
@@ -30,10 +30,63 @@ animations = [{
 "duration": 1.0,
 "texture": ExtResource("7_0lilu")
 }],
-"loop": true,
+"loop": false,
 "name": &"shine",
 "speed": 10.0
 }]
+
+[sub_resource type="Curve" id="Curve_75bu3"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(1, 1), 1.0, 0.0, 1, 0]
+point_count = 2
+
+[sub_resource type="Animation" id="Animation_uifjh"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_75bu3"]
+resource_name = "glow"
+length = 1.9
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:modulate")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1, 1.9),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1.5, 1.5, 1.5, 1), Color(1, 1, 1, 1)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("origin_line:modulate")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1, 1.9),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Color(1, 1, 1, 1), Color(1.5, 1.5, 1.5, 1), Color(1, 1, 1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_b7k5f"]
+_data = {
+&"RESET": SubResource("Animation_uifjh"),
+&"glow": SubResource("Animation_75bu3")
+}
 
 [node name="biome_map_number_displayer" type="Node2D" groups=["travel_tag_displayer"]]
 script = ExtResource("1_6mcay")
@@ -61,6 +114,19 @@ theme_override_fonts/font = ExtResource("8_75bu3")
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="origin_line" type="Line2D" parent="anim_sprite"]
+[node name="origin_line" type="Line2D" parent="."]
+top_level = true
+width = 80.0
+width_curve = SubResource("Curve_75bu3")
+default_color = Color(0.0823529, 0.0823529, 0.0823529, 1)
+
+[node name="displayer_anims" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_b7k5f")
+}
+
+[node name="displayer_anims_timer" type="Timer" parent="displayer_anims"]
+one_shot = true
 
 [connection signal="timeout" from="anim_sprite/play_random_timer" to="." method="_on_play_random_timer_timeout"]
+[connection signal="timeout" from="displayer_anims/displayer_anims_timer" to="." method="_on_displayer_anims_timer_timeout"]
